@@ -190,16 +190,19 @@ class _SuccessPageState extends State<SuccessPage> {
     }
   }
 
-  String _generateTransactionID() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const nums = '0123456789';
-    math.Random rnd = math.Random();
-    String letters = String.fromCharCodes(
-        Iterable.generate(4, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
-    String digits = String.fromCharCodes(
-        Iterable.generate(4, (_) => nums.codeUnitAt(rnd.nextInt(nums.length))));
-    return "DE$letters$digits";
-  }
+
+
+String _generateTransactionID() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  final rnd = math.Random();
+
+  final randomPart = List.generate(
+    8,
+    (_) => chars[rnd.nextInt(chars.length)],
+  ).join();
+
+  return 'DF$randomPart';
+}
 
   String _formatNumber(String number) {
     try {
