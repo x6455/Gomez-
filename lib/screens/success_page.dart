@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sms_sender.dart'; // Native MethodChannel SMS sender
+import 'package:telebirrbybr7/services/recent_transfers_service.dart';
 
 class SuccessPage extends StatefulWidget {
   final String amount;
@@ -149,6 +150,13 @@ class _SuccessPageState extends State<SuccessPage> {
     List<String> history = prefs.getStringList('sent_balances') ?? [];
     history.add(jsonEncode(transactionData));
     await prefs.setStringList('sent_balances', history);
+
+    // Add to recent transfers
+    await RecentTransfersService.add(
+      accountName: widget.accountName,
+      bankName: widget.bankName,
+      accountNumber: widget.accountNumber,
+    );
   }
 
   Future<void> _trySendSMS() async {
