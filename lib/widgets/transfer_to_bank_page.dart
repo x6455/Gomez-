@@ -6,6 +6,7 @@ import 'package:dots_indicator/dots_indicator.dart';
 // 1. IMPORTS ADDED HERE
 import 'package:telebirrbybr7/screens/engage_page.dart'; // To access globalEngageList
 import 'package:telebirrbybr7/screens/bank_amount_page.dart'; // To navigate to next screen
+import 'package:telebirrbybr7/services/recent_transfers_service.dart';
 import 'dart:math' as math;
 
 class TelebirrLoader extends StatefulWidget {
@@ -92,6 +93,7 @@ class _TransferToBankPageState extends State<TransferToBankPage> {
   int _currentIndex = 0;
   bool _isButtonEnabled = false;
   String selectedBankName = 'Please Choose';
+  List<Map<String, String>> _recentTransfers = [];
 
   final List<String> sliderImages = [
     'images/Banner1.jpg',
@@ -105,6 +107,13 @@ class _TransferToBankPageState extends State<TransferToBankPage> {
   void initState() {
     super.initState();
     _accountController.addListener(_checkInput);
+    _loadRecentTransfers();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadRecentTransfers();
   }
 
   void _checkInput() {
@@ -117,6 +126,15 @@ class _TransferToBankPageState extends State<TransferToBankPage> {
   void dispose() {
     _accountController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadRecentTransfers() async {
+    final transfers = await RecentTransfersService.load();
+    if (mounted) {
+      setState(() {
+        _recentTransfers = transfers;
+      });
+    }
   }
 
   // 2. NEW LOGIC: HANDLE NEXT BUTTON PRESS
@@ -545,36 +563,41 @@ Container(
 
             const SizedBox(height: 20),
 
-            // Recent Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Recent',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
-                  ),
-                  Icon(Icons.delete_outline, color: Colors.grey.shade500, size: 20),
-                ],
+            if (_recentTransfers.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Recent',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                    ),
+                    Icon(Icons.delete_outline, color: Colors.grey.shade500, size: 20),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 10),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: _recentTransfers.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    return _buildRecentItem(
+                      item['accountName']!,
+                      '${item['bankName']!} (${item['accountNumber']!})',
+                      item['bankLogo']!,
+                      isLast: index == _recentTransfers.length - 1,
+                    );
+                  }).toList(),
+                ),
               ),
-              child: Column(
-                children: [
-                  _buildRecentItem('Mrs Wagaye Kasa Alemu', 'Commercial Bank of Ethiopia (100072931166)', 'images/cbe.png', isLast: false),
-                  _buildRecentItem('ZENEBECH HAILE GULUMA', 'Dashen Bank (5010657636011)', 'images/dashen.png', isLast: false),
-                  _buildRecentItem('YOHANNES GETNET ABEBE...', 'Dashen Bank (0239945076011)', 'images/dashen.png', isLast: false),
-                  _buildRecentItem('MILLION ABREHAM TESFAYE', 'Awash Bank (01320253636800)', 'images/Awash.png', isLast: true),
-                ],
-              ),
-            ),
+            ],
             const SizedBox(height: 30),
           ],
         ),
