@@ -16,40 +16,83 @@ class PinEntryPage extends StatefulWidget {
 class _PinEntryPageState extends State<PinEntryPage> {
   String _pin = "";
   final int _pinLength = 6;
+  bool _isLoading = false;
+  String? _errorText;
 
   void _onNumberPress(String number) {
+    if (_isLoading) return;
+    
     if (_pin.length < _pinLength) {
-      setState(() => _pin += number);
+      setState(() {
+        _pin += number;
+        _errorText = null;
+      });
     }
     
-    // Auto-verify when PIN reaches correct length
     if (_pin.length == widget.correctPin.length) {
       if (_pin == widget.correctPin) {
-        Future.delayed(const Duration(milliseconds: 300), () {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-            (route) => false,
-          );
-        });
+        _showLoading();
       } else {
-        // Reset if incorrect
         Future.delayed(const Duration(milliseconds: 500), () {
-          setState(() => _pin = "");
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Incorrect PIN. Please try again."),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          setState(() {
+            _pin = "";
+            _errorText = "The information you entered is incorrect. Please try again.";
+          });
         });
       }
     }
   }
 
+  void _showLoading() {
+    setState(() {
+      _isLoading = true;
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Center(
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: Image.asset(
+                'images/loading.gif',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loader
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false,
+        );
+      }
+    });
+  }
+
   void _onBackspace() {
+    if (_isLoading) return;
+    
     if (_pin.isNotEmpty) {
-      setState(() => _pin = _pin.substring(0, _pin.length - 1));
+      setState(() {
+        _pin = _pin.substring(0, _pin.length - 1);
+        _errorText = null;
+      });
     }
   }
 
@@ -61,7 +104,6 @@ class _PinEntryPageState extends State<PinEntryPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          // Smaller, lighter X button
           icon: const Icon(
             Icons.close, 
             color: Color(0xFF757575), 
@@ -73,7 +115,6 @@ class _PinEntryPageState extends State<PinEntryPage> {
       body: Column(
         children: [
           const SizedBox(height: 40),
-          // Lighter "Enter PIN" text
           const Text(
             "Enter PIN",
             style: TextStyle(
@@ -84,7 +125,6 @@ class _PinEntryPageState extends State<PinEntryPage> {
           ),
           const SizedBox(height: 30),
           
-          // PIN Dots
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(widget.correctPin.length, (index) {
@@ -106,7 +146,6 @@ class _PinEntryPageState extends State<PinEntryPage> {
           ),
           
           const SizedBox(height: 25),
-          // Bolder "Forgot PIN" - removed question mark
           const Text(
             "Forgot PIN",
             style: TextStyle(
@@ -116,9 +155,23 @@ class _PinEntryPageState extends State<PinEntryPage> {
             ),
           ),
           
+          // Error message below "Forgot PIN"
+          if (_errorText != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                _errorText!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          
           const Spacer(),
 
-          // Custom Number Pad - numbers bolder
           Container(
             padding: const EdgeInsets.only(bottom: 20),
             child: Column(
@@ -168,7 +221,6 @@ class _PinEntryPageState extends State<PinEntryPage> {
           alignment: Alignment.center,
           child: Text(
             number,
-            // Bolder numbers
             style: const TextStyle(
               fontSize: 30, 
               fontWeight: FontWeight.w700,
