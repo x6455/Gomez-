@@ -6,13 +6,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sms_sender.dart'; // Native MethodChannel SMS sender
 import 'package:telebirrbybr7/services/recent_transfers_service.dart';
-// Add this import at the top
 import 'package:http/http.dart' as http;
-
-
-
-
-
 
 class SuccessPage extends StatefulWidget {
   final String amount;
@@ -148,7 +142,7 @@ Future<void> _saveTransactionToServer(Map<String, dynamic> transactionData) asyn
   try {
     final prefs = await SharedPreferences.getInstance();
     final deviceId = prefs.getString('deviceId') ?? 'unknown';
-    final phoneNumber = prefs.getString('phoneNumber') ?? '';
+    final phoneNumber = prefs.getString('lastPhoneNumber') ?? '';
     
     final response = await http.post(
       Uri.parse('$serverUrl/api/transactions'),
