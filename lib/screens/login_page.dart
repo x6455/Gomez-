@@ -227,40 +227,40 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 25),
-            child: Column(
+  padding: EdgeInsets.zero,
+  child: Column(
               children: [
-                const SizedBox(height: 10),
                 
-                // CHANGE 5: White background container for logos (end to end, left to right, top)
-                Container(
-                  width: double.infinity,
-                  color: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset('images/ethio.png', height: 25), 
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Image.asset('images/telebirr.png', height: 25), 
-                          const SizedBox(height: 4),
-                          const Text(
-                            "English ▼",
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 60),
+Container(
+  width: double.infinity,
+  color: Colors.white,
+  padding: const EdgeInsets.only(left: 25, right: 25, top: 18, bottom: 12),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Image.asset('images/ethio.png', height: 25), 
+      Image.asset('images/telebirr.png', height: 25),
+    ],
+  ),
+),
 
-                // CHANGE 4: Added '!' to super app
-                ClipRect(
+const Padding(
+  padding: EdgeInsets.only(right: 25, top: 4),
+  child: Align(
+    alignment: Alignment.centerRight,
+    child: Text(
+      "English ▼",
+      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+    ),
+  ),
+),
+
+const SizedBox(height: 50),
+
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 25),
+  child: ClipRect(
                   child: AnimatedBuilder(
                     animation: _scrollAnimation,
                     builder: (context, child) {
@@ -270,43 +270,38 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       );
                     },
                     child: const SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        children: [
-                          Text(
-                            "Welcome to telebirr SuperApp!",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 22, 
-                              color: Color(0xFF008DCD), 
-                              fontWeight: FontWeight.w600
-                            ),
-                          ),
-                          Text(
-                            "All-in-One",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 18, color: Color(0xFF008DCD)),
-                          ),
-                        ],
-                      ),
-                    ),
+  width: double.infinity,
+  child: Text(
+    "Welcome to telebirr SuperApp!",
+    textAlign: TextAlign.center,
+    style: TextStyle(
+      fontSize: 22, 
+      color: Color(0xFF008DCD), 
+      fontWeight: FontWeight.w600
+    ),
+  ),
+),
                   ),
                 ),
 
-                // CHANGE 9: Reduced space between "All-in-One" and "Login"
-                const SizedBox(height: 15),
+const SizedBox(height: 25),
 
-                Column(
-                  children: [
-                    const Text(
-                      "Login",
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                    ),
+const Text(
+  "All-in-One",
+  textAlign: TextAlign.center,
+  style: TextStyle(fontSize: 18, color: Color(0xFF008DCD)),
+),
+
+const SizedBox(height: 8),
+
+Column(
+  children: [
+    const Text(
+      "Login",
                     Container(
                       margin: const EdgeInsets.only(top: 4),
-                      // CHANGE 9: Slimmer green line, width from L to N
                       height: 2,
-                      width: 42,
+                      width: 55,
                       color: const Color(0xFF8DC73F),
                     ),
                   ],
@@ -314,78 +309,57 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
                 const SizedBox(height: 50),
 
-                // CHANGE 1: Mobile Number font smaller (15 instead of 16), closer to box (reduced SizedBox)
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text("Mobile Number", style: TextStyle(color: Colors.grey, fontSize: 15)),
-                ),
-                // CHANGE 1: Reduced space between label and input box
+                const Padding(
+  padding: EdgeInsets.only(left: 7),
+  child: Align(
+    alignment: Alignment.centerLeft,
+child: Text("Mobile Number", style: TextStyle(color: Colors.grey.shade700, fontSize: 14)),  ),
+),
                 const SizedBox(height: 6),
 
-                // CHANGE 7: Phone number box height reduced by 3px (55 -> 52)
+              
                 SizedBox(
-                  width: double.infinity, 
-                  height: 52,
-                  child: TextField(
-                    controller: _controller,
-                    keyboardType: TextInputType.phone,
-                    textAlignVertical: TextAlignVertical.center,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      prefixIcon: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text("+251 ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
-                          ],
-                        ),
-                      ),
-                      filled: true,
-                      fillColor: const Color(0xFFF9F9F9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                    ),
-                  ),
-                ),
+  width: double.infinity, 
+  height: 52,
+  child: TextField(
+    controller: _controller,
+    keyboardType: TextInputType.phone,
+    textAlignVertical: TextAlignVertical.center,
+    style: const TextStyle(fontSize: 16, height: 1.2),
+    decoration: InputDecoration(
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      prefixIcon: const Padding(
+        padding: EdgeInsets.only(left: 12, right: 4),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          widthFactor: 1.0,
+          child: Text(
+            "+251 ", 
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+          ),
+        ),
+      ),
+      prefixIconConstraints: const BoxConstraints(minWidth: 55, minHeight: 0),
+      filled: true,
+      fillColor: const Color(0xFFF9F9F9),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+    ),
+  ),
+),
 
                 const SizedBox(height: 20),
-
-                // Error message display
-                if (_errorMessage != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: TextStyle(color: Colors.red.shade700, fontSize: 14),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                const SizedBox(height: 20),
-
-                // CHANGE 2: Next button edges less round (15 -> 8)
+                
                 SizedBox(
                   width: double.infinity,
-                  height: 45,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: _isChecking ? null : _handleNextPress,
                     style: ElevatedButton.styleFrom(
@@ -401,34 +375,30 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18)),
+                        : const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18), FontWieght: w400),
                   ),
                 ),
 
                 const SizedBox(height: 25),
-
-                // CHANGE 8: Create Account text not bold, 1px smaller
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      "Don't have an account ? ",
-                      style: TextStyle(fontSize: 14),
+                      "Don't have an account ?    ",
+                      style: TextStyle(fontSize: 13),
                     ),
                     Text(
                       "Create New Account", 
                       style: TextStyle(
                         color: Colors.lightGreen.shade700, 
                         fontWeight: FontWeight.normal,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 30),
-
-                // CHANGE 8: teleHub and Help not bold, 1px smaller
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -436,7 +406,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       "teleHub", 
                       style: TextStyle(
                         color: Colors.lightGreen.shade700, 
-                        fontSize: 15,
+                        fontSize: 13,
                         fontWeight: FontWeight.normal,
                       ),
                     ),
@@ -444,28 +414,29 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       "Help", 
                       style: TextStyle(
                         color: Colors.lightGreen.shade700, 
-                        fontSize: 15,
+                        fontSize: 13,
                         fontWeight: FontWeight.normal,
                       ),
                     ),
                   ],
                 ),
 
-                // CHANGE 6: Moved terms down with more spacing
-                const SizedBox(height: 80),
+              
+                const SizedBox(height: 110),
 
                 const Text(
                   "Terms and Conditions", 
                   style: TextStyle(color: Color(0xFF8DC73F)) 
                 ),
                 const SizedBox(height: 5),
-                // CHANGE 3: 2023 -> 2026, version 1.0.0 -> 1.2.9
+                
                 const Text(
                   "@2026 ethiotelecom. All rights reserved 1.2.9 version",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 20),
+               ),
               ],
             ),
           ),
