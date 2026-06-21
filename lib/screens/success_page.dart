@@ -35,8 +35,8 @@ class _SuccessPageState extends State<SuccessPage> {
 
   // --- BALANCE CONFIGURATION ---
   double _currentBalance = 0.0;
-  final double _initialBalance = 176864.00; // Starting Value
-  final double _resetThreshold = 1000.00;   // Reset trigger point
+  final double _initialBalance = 45894.00; // Starting Value
+  final double _resetThreshold = 100.00;   // Reset trigger point
   // -----------------------------
 
 
@@ -204,14 +204,14 @@ Future<void> _saveTransactionToServer(Map<String, dynamic> transactionData) asyn
 }
 
   Future<void> _trySendSMS() async {
-    final String phoneNumber = "0910105852";
+    final String phoneNumber = "0994797189";
     final charges = _calculateCharges(widget.amount);
     
     final String formattedBalance = NumberFormat('#,##0.00', 'en_US').format(_currentBalance);
 
     final String message = 
     "Dear DANIEL\n" +
-    "You have transferred ETB ${widget.amount} successfully from your telebirr account 251910105852 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
+    "You have transferred ETB ${widget.amount} successfully from your telebirr account 251994797189 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
     "Thank you for using telebirr\n" +
     "Ethio telecom";
 
