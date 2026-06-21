@@ -458,7 +458,7 @@ Widget build(BuildContext context) {
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey, fontSize: 13),
                     ),
-                    const SizedBox(height: 20),
+                                        const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -467,6 +467,8 @@ Widget build(BuildContext context) {
         ),
       ),
     ),
-  );
-}
+  ),
+),
+    );
+  }
 }
