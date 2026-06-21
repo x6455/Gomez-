@@ -22,17 +22,83 @@ class _TransactionMessagesScreenState extends State<TransactionMessagesScreen> {
 
   Future<void> _loadTransactions() async {
     final prefs = await SharedPreferences.getInstance();
-    // Using the key 'sent_balances' defined in your success_page.dart
     final List<String> history = prefs.getStringList('sent_balances') ?? [];
+
+    // Load seen status
+    final List<String> seenTxIDs = prefs.getStringList('seen_transactions') ?? [];
 
     setState(() {
       _transactions = history
-          .map((item) => jsonDecode(item) as Map<String, dynamic>)
+          .map((item) {
+            final tx = jsonDecode(item) as Map<String, dynamic>;
+            // Mark as seen if in seen list
+            tx['seen'] = seenTxIDs.contains(tx['txID']);
+            return tx;
+          })
           .toList()
-          .reversed // Show the newest transactions at the top
+          .reversed
           .toList();
       _isLoading = false;
     });
+  }
+
+  Future<void> _markAsSeen(String txID) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> seenTxIDs = prefs.getStringList('seen_transactions') ?? [];
+    if (!seenTxIDs.contains(txID)) {
+      seenTxIDs.add(txID);
+      await prefs.setStringList('seen_transactions', seenTxIDs);
+    }
+  }
+
+  void _handleTransactionTap(Map<String, dynamic> tx) async {
+    // Mark as seen immediately
+    final txID = tx['txID'] as String;
+    await _markAsSeen(txID);
+    
+    setState(() {
+      tx['seen'] = true;
+    });
+
+    // Show loading dialog
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Center(
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: Image.asset(
+                'images/loading.gif',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Wait 2 seconds then navigate
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (!mounted) return;
+    Navigator.of(context).pop(); // Close loader
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TransactionDetailScreen(txData: tx),
+      ),
+    );
   }
 
   @override
@@ -73,133 +139,127 @@ class _TransactionMessagesScreenState extends State<TransactionMessagesScreen> {
   }
 
   Widget _buildTransactionCard(Map<String, dynamic> tx) {
-  return GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TransactionDetailScreen(txData: tx),
-        ),
-      );
-    },
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(8), // match your card's radius
-      child: Container(
-        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.19),
-              blurRadius: 4,
-              offset: const Offset(0, 2), // only bottom shadow
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Color(0xFF0056B3),
-                    child: Icon(Icons.check, color: Colors.white, size: 28),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Transfer to Bank",
-                          style: TextStyle(color: Colors.grey, fontSize: 14),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "-${tx['amount_sent']}",
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.normal,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
+    return GestureDetector(
+      onTap: () => _handleTransactionTap(tx),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.19),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Color(0xFF0056B3),
+                      child: Icon(Icons.check, color: Colors.white, size: 28),
                     ),
-                  ),
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Transfer to Bank",
+                            style: TextStyle(color: Colors.grey, fontSize: 14),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "-${tx['amount_sent']}",
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.normal,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    // Red indicator - hidden when seen
+                    if (tx['seen'] != true)
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Container(
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
 
-            // Perforated line (Ticket effect)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Row(
-                children: [
-                  _cutout(isLeft: true),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Flex(
-                          direction: Axis.horizontal,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: List.generate(
-                            (constraints.constrainWidth() / 8).floor(),
-                            (index) => const SizedBox(
-                              width: 4,
-                              height: 1,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Color(0xFFEEEEEE),
+              // Perforated line
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Row(
+                  children: [
+                    _cutout(isLeft: true),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Flex(
+                            direction: Axis.horizontal,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: List.generate(
+                              (constraints.constrainWidth() / 8).floor(),
+                              (index) => const SizedBox(
+                                width: 4,
+                                height: 1,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFEEEEEE),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  _cutout(isLeft: false),
-                ],
+                    _cutout(isLeft: false),
+                  ],
+                ),
               ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  _infoRow("Transaction Time:", tx['time'] ?? ""),
-                  const SizedBox(height: 6),
-                  _infoRow("Transaction To:", tx['accountName']?.toUpperCase() ?? ""),
-                ],
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    _infoRow("Transaction Time:", tx['time'] ?? ""),
+                    const SizedBox(height: 6),
+                    _infoRow("Transaction To:", tx['accountName']?.toUpperCase() ?? ""),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _cutout({required bool isLeft}) {
     return Container(
       height: 20,
       width: 13,
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F4F4), // Match screen background
+        color: const Color(0xFFF4F4F4),
         borderRadius: BorderRadius.only(
           topRight: isLeft ? const Radius.circular(12) : Radius.zero,
           bottomRight: isLeft ? const Radius.circular(12) : Radius.zero,
