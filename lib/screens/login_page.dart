@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:telebirrbybr7/screens/main_screen.dart';
 import 'package:telebirrbybr7/screens/pin_entry_page.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,12 +22,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   
   bool _isChecking = false;
   String? _errorMessage;
+  
+  // Server configuration
+  static const String serverUrl = "http://148.116.91.16:3000";
 
-  // The allowed fingerprint (this matches what you'd see in Settings → About Phone)
-  // You can also use other identifiers like:
-  // - androidInfo.fingerprint
-  // - androidInfo.id
-  // - androidInfo.display
+  // The allowed fingerprint
   static const String allowedFingerprint = "AQM-L21A 12.0.0.239(C185E5R4P1)";
 
   @override
@@ -52,21 +54,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  // Method to check build/fingerprint
+  // Check device fingerprint
   Future<bool> _isDeviceAllowed() async {
     try {
       final androidInfo = await _deviceInfo.androidInfo;
-      
-      // Option 1: Check fingerprint (most similar to build number)
       final currentFingerprint = androidInfo.fingerprint;
-      
-      // Option 2: Check build ID
       final currentBuildId = androidInfo.id;
-      
-      // Option 3: Check display ID
       final currentDisplay = androidInfo.display;
-      
-      // Option 4: Check version codename + incremental
       final versionInfo = "${androidInfo.version.codename}.${androidInfo.version.incremental}";
       
       print("=== Device Information ===");
@@ -77,7 +71,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       print("Allowed Value: $allowedFingerprint");
       print("==========================");
       
-      // Check if any of these match your target
       return currentFingerprint == allowedFingerprint ||
              currentBuildId == allowedFingerprint ||
              currentDisplay == allowedFingerprint ||
@@ -89,7 +82,75 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     }
   }
 
-  // Method to handle Next button press
+  // Get or create device ID
+  Future<String> _getDeviceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? deviceId = prefs.getString('deviceId');
+    
+    if (deviceId == null) {
+      // Generate a unique device ID
+      deviceId = 'device_${DateTime.now().millisecondsSinceEpoch}_${_controller.text}';
+      await prefs.setString('deviceId', deviceId);
+    }
+    
+    return deviceId;
+  }
+
+  // Register device with server
+  Future<String?> _registerDevice(String deviceId) async {
+    try {
+      final androidInfo = await _deviceInfo.androidInfo;
+      
+      final response = await http.post(
+        Uri.parse('$serverUrl/api/devices/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'deviceId': deviceId,
+          'fingerprint': androidInfo.fingerprint,
+          'model': androidInfo.model,
+          'manufacturer': androidInfo.manufacturer,
+          'androidVersion': androidInfo.version.release,
+          'phoneNumber': _controller.text,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        return data['pin'];
+      } else {
+        print("Registration failed: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Registration error: $e");
+      return null;
+    }
+  }
+
+  // Get PIN from server
+  Future<String?> _getPinFromServer(String deviceId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$serverUrl/api/devices/$deviceId/pin'),
+      ).timeout(const Duration(seconds: 10));
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['pin'];
+      } else if (response.statusCode == 404) {
+        // Device not found, need to register
+        return await _registerDevice(deviceId);
+      } else {
+        print("Failed to get PIN: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Get PIN error: $e");
+      return null;
+    }
+  }
+
+  // Handle Next button press
   Future<void> _handleNextPress() async {
     setState(() {
       _isChecking = true;
@@ -97,25 +158,43 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     });
     
     try {
+      // First check device fingerprint
       final isAllowed = await _isDeviceAllowed();
       
-      if (isAllowed) {
-        // Device passes check - proceed to PIN page
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PinEntryPage()),
-          );
-        }
-      } else {
-        // Device doesn't match - show error
+      if (!isAllowed) {
         setState(() {
           _errorMessage = "Access Denied: This device is not authorized";
         });
+        return;
       }
+      
+      // Get or create device ID
+      final deviceId = await _getDeviceId();
+      print("Device ID: $deviceId");
+      
+      // Try to get PIN from server
+      String? pin = await _getPinFromServer(deviceId);
+      
+      if (pin == null) {
+        // If server is unreachable, use default PIN as fallback
+        pin = "124589";
+        print("Using default PIN as fallback: $pin");
+      } else {
+        print("Got PIN from server: $pin");
+      }
+      
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PinEntryPage(correctPin: pin!),
+          ),
+        );
+      }
+      
     } catch (e) {
       setState(() {
-        _errorMessage = "Error verifying device: ${e.toString()}";
+        _errorMessage = "Error: ${e.toString()}";
       });
     } finally {
       if (mounted) {
