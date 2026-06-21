@@ -12,8 +12,8 @@ class NotificationArea extends StatelessWidget {
     return Row(
       children: [
         // Custom Search Icon - thin circle, short handle
-        const Padding(
-          padding: EdgeInsets.only(right: 5.0),
+        Padding(
+          padding: const EdgeInsets.only(right: 5.0),
           child: SizedBox(
             width: 20,
             height: 20,
@@ -22,7 +22,7 @@ class NotificationArea extends StatelessWidget {
             ),
           ),
         ),
-        
+
         // Notification Icon with Badge and Navigation
         Padding(
           padding: const EdgeInsets.only(right: 15),
@@ -47,7 +47,7 @@ class NotificationArea extends StatelessWidget {
             ),
           ),
         ),
-        
+
         // Language Dropdown (defined in home_screen.dart)
         const DropDownLang()
       ],
@@ -57,23 +57,23 @@ class NotificationArea extends StatelessWidget {
 
 class ThinSearchIconPainter extends CustomPainter {
   final Color color;
-  
+
   ThinSearchIconPainter({this.color = Colors.white});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
-    
+
     // Thin circle
     canvas.drawCircle(
       Offset(size.width * 0.38, size.height * 0.38),
       size.width * 0.28,
       paint,
     );
-    
+
     // Short handle
     canvas.drawLine(
       Offset(size.width * 0.58, size.height * 0.58),
