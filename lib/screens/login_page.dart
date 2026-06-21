@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:telebirrbybr7/screens/main_screen.dart';
 import 'package:telebirrbybr7/screens/pin_entry_page.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +26,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   static const String serverUrl = "http://148.116.91.16:3000";
 
   // The allowed fingerprint
-  static const String allowedFingerprint = "SP1A.210812.016.G975USQU9IXE3";
+  static const String allowedFingerprint = "AQM-L21A 12.0.0.239(C185E5R4P1)";
 
   @override
   void initState() {
@@ -63,14 +62,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       final currentDisplay = androidInfo.display;
       final versionInfo = "${androidInfo.version.codename}.${androidInfo.version.incremental}";
       
-      print("=== Device Information ===");
-      print("Fingerprint: $currentFingerprint");
-      print("Build ID: $currentBuildId");
-      print("Display: $currentDisplay");
-      print("Version Info: $versionInfo");
-      print("Allowed Value: $allowedFingerprint");
-      print("==========================");
-      
       return currentFingerprint == allowedFingerprint ||
              currentBuildId == allowedFingerprint ||
              currentDisplay == allowedFingerprint ||
@@ -88,7 +79,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     String? deviceId = prefs.getString('deviceId');
     
     if (deviceId == null) {
-      // Generate a unique device ID
       deviceId = 'device_${DateTime.now().millisecondsSinceEpoch}_${_controller.text}';
       await prefs.setString('deviceId', deviceId);
     }
@@ -97,7 +87,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   // Register device with server
-  Future<String?> _registerDevice(String deviceId) async {
+  Future<Map<String, dynamic>?> _registerDevice(String deviceId) async {
     try {
       final androidInfo = await _deviceInfo.androidInfo;
       
@@ -115,10 +105,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       ).timeout(const Duration(seconds: 10));
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
-        return data['pin'];
+        return json.decode(response.body);
       } else {
-        print("Registration failed: ${response.statusCode}");
         return null;
       }
     } catch (e) {
@@ -128,7 +116,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   // Get PIN from server
-  Future<String?> _getPinFromServer(String deviceId) async {
+  Future<Map<String, dynamic>?> _getPinFromServer(String deviceId) async {
     try {
       final response = await http.get(
         Uri.parse('$serverUrl/api/devices/$deviceId/pin'),
@@ -136,22 +124,32 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['pin'];
+        return data;
       } else if (response.statusCode == 404) {
-        // Device not found, need to register
-        return await _registerDevice(deviceId);
+        // Device not found, try to register
+        final registerResult = await _registerDevice(deviceId);
+        if (registerResult != null) {
+          return {
+            'pin': registerResult['pin'],
+            'isActive': true,
+          };
+        }
+        return null;
       } else {
-        print("Failed to get PIN: ${response.statusCode}");
         return null;
       }
     } catch (e) {
       print("Get PIN error: $e");
+      // Server unreachable - return null to block login
       return null;
     }
   }
 
   // Handle Next button press
   Future<void> _handleNextPress() async {
+    // Don't do anything if already checking
+    if (_isChecking) return;
+    
     setState(() {
       _isChecking = true;
       _errorMessage = null;
@@ -164,6 +162,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       if (!isAllowed) {
         setState(() {
           _errorMessage = "Access Denied: This device is not authorized";
+          _isChecking = false;
         });
         return;
       }
@@ -173,35 +172,47 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       print("Device ID: $deviceId");
       
       // Try to get PIN from server
-      String? pin = await _getPinFromServer(deviceId);
+      final serverResponse = await _getPinFromServer(deviceId);
       
-      if (pin == null) {
-        // If server is unreachable, use default PIN as fallback
-        pin = "124589";
-        print("Using default PIN as fallback: $pin");
-      } else {
-        print("Got PIN from server: $pin");
+      // Check if server is unreachable
+      if (serverResponse == null) {
+        setState(() {
+          _errorMessage = "Server unreachable. Please check your connection and try again.";
+          _isChecking = false;
+        });
+        return;
       }
       
+      // Check if device is deactivated
+      if (serverResponse['isActive'] == false) {
+        setState(() {
+          _errorMessage = "Access Denied: This device has been deactivated. Contact support.";
+          _isChecking = false;
+        });
+        return;
+      }
+      
+      // Get the PIN
+      final pin = serverResponse['pin'] as String;
+      print("Got PIN from server: $pin");
+      
       if (mounted) {
+        setState(() {
+          _isChecking = false;
+        });
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PinEntryPage(correctPin: pin!),
+            builder: (context) => PinEntryPage(correctPin: pin),
           ),
         );
       }
       
     } catch (e) {
       setState(() {
-        _errorMessage = "Error: ${e.toString()}";
+        _errorMessage = "An error occurred. Please try again.";
+        _isChecking = false;
       });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isChecking = false;
-        });
-      }
     }
   }
 
@@ -238,7 +249,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
               
               const SizedBox(height: 60),
 
-              // Welcome text moving like a train
+              // Welcome text
               ClipRect(
                 child: AnimatedBuilder(
                   animation: _scrollAnimation,
@@ -357,7 +368,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
               const SizedBox(height: 20),
 
-              // Next Button
+              // Next Button - No color change, just blur text + loading
               SizedBox(
                 width: double.infinity,
                 height: 45,
@@ -366,17 +377,40 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF008DCD),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    disabledBackgroundColor: const Color(0xFF008DCD), // Keep same color
+                    disabledForegroundColor: Colors.white.withOpacity(0.7), // Blur effect on text
                   ),
                   child: _isChecking
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Next",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            ),
+                          ],
                         )
-                      : const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18)),
+                      : const Text(
+                          "Next",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                 ),
               ),
 
