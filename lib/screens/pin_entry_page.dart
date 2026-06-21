@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:telebirrbybr7/screens/main_screen.dart';
 
 class PinEntryPage extends StatefulWidget {
-  final String correctPin;
-  
-  const PinEntryPage({
-    super.key, 
-    required this.correctPin,
-  });
+  const PinEntryPage({super.key});
 
   @override
   State<PinEntryPage> createState() => _PinEntryPageState();
@@ -15,16 +10,17 @@ class PinEntryPage extends StatefulWidget {
 
 class _PinEntryPageState extends State<PinEntryPage> {
   String _pin = "";
-  final int _pinLength = 6;
+  final int _pinLength = 6; // Set to 6 to match "124589"
+  final String _correctPin = "124589"; // Your default PIN
 
   void _onNumberPress(String number) {
     if (_pin.length < _pinLength) {
       setState(() => _pin += number);
     }
     
-    // Auto-verify when PIN reaches correct length
-    if (_pin.length == widget.correctPin.length) {
-      if (_pin == widget.correctPin) {
+    // Auto-verify when PIN reaches 6 digits
+    if (_pin.length == _pinLength) {
+      if (_pin == _correctPin) {
         Future.delayed(const Duration(milliseconds: 300), () {
           Navigator.pushAndRemoveUntil(
             context,
@@ -58,6 +54,7 @@ class _PinEntryPageState extends State<PinEntryPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          // Top left X button
           icon: const Icon(Icons.close, color: Colors.black, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
@@ -71,10 +68,10 @@ class _PinEntryPageState extends State<PinEntryPage> {
           ),
           const SizedBox(height: 30),
           
-          // PIN Dots
+          // PIN Dots: Hollow black border or Solid Green
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.correctPin.length, (index) {
+            children: List.generate(_pinLength, (index) {
               bool isFilled = index < _pin.length;
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -108,6 +105,7 @@ class _PinEntryPageState extends State<PinEntryPage> {
                 _buildRow(['1', '2', '3']),
                 _buildRow(['4', '5', '6']),
                 _buildRow(['7', '8', '9']),
+                // Custom bottom row: [Empty] [0] [Arrow]
                 Row(
                   children: [
                     const Expanded(child: SizedBox(height: 80)), 
@@ -119,6 +117,7 @@ class _PinEntryPageState extends State<PinEntryPage> {
                         highlightColor: Colors.transparent,
                         child: const SizedBox(
                           height: 80,
+                          // 1. Backspace changed to arrow style
                           child: Icon(Icons.arrow_back, size: 30, color: Colors.black),
                         ),
                       ),
