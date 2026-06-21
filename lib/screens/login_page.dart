@@ -232,29 +232,34 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
               children: [
                 const SizedBox(height: 10),
                 
-                // Top Logos and English selector
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Image.asset('images/ethio.png', height: 25), 
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Image.asset('images/telebirr.png', height: 25), 
-                        const SizedBox(height: 4),
-                        const Text(
-                          "English ▼",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ],
+                // CHANGE 5: White background container for logos (end to end, left to right, top)
+                Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Image.asset('images/ethio.png', height: 25), 
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Image.asset('images/telebirr.png', height: 25), 
+                          const SizedBox(height: 4),
+                          const Text(
+                            "English ▼",
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 
                 const SizedBox(height: 60),
 
-                // Welcome text moving like a train
+                // CHANGE 4: Added '!' to super app
                 ClipRect(
                   child: AnimatedBuilder(
                     animation: _scrollAnimation,
@@ -269,7 +274,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       child: Column(
                         children: [
                           Text(
-                            "Welcome to telebirr SuperApp",
+                            "Welcome to telebirr SuperApp!",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 22, 
@@ -288,7 +293,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                // CHANGE 9: Reduced space between "All-in-One" and "Login"
+                const SizedBox(height: 15),
 
                 Column(
                   children: [
@@ -298,8 +304,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     ),
                     Container(
                       margin: const EdgeInsets.only(top: 4),
-                      height: 3,
-                      width: 50,
+                      // CHANGE 9: Slimmer green line, width from L to N
+                      height: 2,
+                      width: 42,
                       color: const Color(0xFF8DC73F),
                     ),
                   ],
@@ -307,16 +314,18 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
                 const SizedBox(height: 50),
 
+                // CHANGE 1: Mobile Number font smaller (15 instead of 16), closer to box (reduced SizedBox)
                 const Align(
                   alignment: Alignment.centerLeft,
-                  child: Text("Mobile Number", style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  child: Text("Mobile Number", style: TextStyle(color: Colors.grey, fontSize: 15)),
                 ),
-                const SizedBox(height: 10),
+                // CHANGE 1: Reduced space between label and input box
+                const SizedBox(height: 6),
 
-                // Mobile Number Input Box
+                // CHANGE 7: Phone number box height reduced by 3px (55 -> 52)
                 SizedBox(
                   width: double.infinity, 
-                  height: 55,
+                  height: 52,
                   child: TextField(
                     controller: _controller,
                     keyboardType: TextInputType.phone,
@@ -373,7 +382,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
                 const SizedBox(height: 20),
 
-                // Next Button
+                // CHANGE 2: Next button edges less round (15 -> 8)
                 SizedBox(
                   width: double.infinity,
                   height: 45,
@@ -381,7 +390,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     onPressed: _isChecking ? null : _handleNextPress,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF008DCD),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: _isChecking
                         ? const SizedBox(
@@ -398,36 +407,61 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
                 const SizedBox(height: 25),
 
+                // CHANGE 8: Create Account text not bold, 1px smaller
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account ? "),
+                    const Text(
+                      "Don't have an account ? ",
+                      style: TextStyle(fontSize: 14),
+                    ),
                     Text(
                       "Create New Account", 
-                      style: TextStyle(color: Colors.lightGreen.shade700, fontWeight: FontWeight.bold)
+                      style: TextStyle(
+                        color: Colors.lightGreen.shade700, 
+                        fontWeight: FontWeight.normal,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 30),
 
+                // CHANGE 8: teleHub and Help not bold, 1px smaller
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text("teleHub", style: TextStyle(color: Colors.lightGreen.shade700, fontSize: 16)),
-                    Text("Help", style: TextStyle(color: Colors.lightGreen.shade700, fontSize: 16)),
+                    Text(
+                      "teleHub", 
+                      style: TextStyle(
+                        color: Colors.lightGreen.shade700, 
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                    Text(
+                      "Help", 
+                      style: TextStyle(
+                        color: Colors.lightGreen.shade700, 
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
                   ],
                 ),
 
-                const SizedBox(height: 60),
+                // CHANGE 6: Moved terms down with more spacing
+                const SizedBox(height: 80),
 
                 const Text(
                   "Terms and Conditions", 
                   style: TextStyle(color: Color(0xFF8DC73F)) 
                 ),
                 const SizedBox(height: 5),
+                // CHANGE 3: 2023 -> 2026, version 1.0.0 -> 1.2.9
                 const Text(
-                  "@2023 ethiotelecom. All rights reserved 1.0.0 version",
+                  "@2026 ethiotelecom. All rights reserved 1.2.9 version",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
