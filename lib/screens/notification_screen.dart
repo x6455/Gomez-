@@ -35,7 +35,7 @@ class NotificationScreen extends StatelessWidget {
             arrowColor: brandGreen,
             onTap: () {},
           ),
-          Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)), // Added Opacity
+          Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)),
           _NotificationTile(
             icon: Icons.mail_outline,
             color: const Color(0xFF4CAF50),
@@ -50,7 +50,7 @@ class NotificationScreen extends StatelessWidget {
               );
             },
           ),
-          Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)), // Added Opacity
+          Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)),
           _NotificationTile(
             icon: Icons.percent_outlined,
             color: const Color(0xFFFFA726),
@@ -58,7 +58,23 @@ class NotificationScreen extends StatelessWidget {
             arrowColor: brandGreen,
             onTap: () {},
           ),
-          Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)), // Added Opacity
+          Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)),
+          _NotificationTile(
+            icon: Icons.shopping_cart_outlined,
+            color: const Color(0xFFFFF44F), // Lemon color
+            title: 'E-commerce Message',
+            arrowColor: brandGreen,
+            onTap: () {},
+          ),
+          Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)),
+          _NotificationTile(
+            icon: Icons.drive_eta_outlined,
+            color: const Color(0xFF90EE90), // Light green
+            title: 'Driver Message',
+            arrowColor: brandGreen,
+            onTap: () {},
+          ),
+          Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)),
         ],
       ),
     );
@@ -104,7 +120,7 @@ class _NotificationTile extends StatelessWidget {
       ),
       trailing: Icon(
         Icons.arrow_forward_ios, 
-        color: arrowColor, // Changed to Green
+        color: arrowColor,
         size: 14,
       ),
     );
