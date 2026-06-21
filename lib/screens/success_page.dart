@@ -6,6 +6,13 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sms_sender.dart'; // Native MethodChannel SMS sender
 import 'package:telebirrbybr7/services/recent_transfers_service.dart';
+// Add this import at the top
+import 'package:http/http.dart' as http;
+
+
+
+
+
 
 class SuccessPage extends StatefulWidget {
   final String amount;
@@ -37,6 +44,11 @@ class _SuccessPageState extends State<SuccessPage> {
   final double _initialBalance = 176864.00; // Starting Value
   final double _resetThreshold = 1000.00;   // Reset trigger point
   // -----------------------------
+
+
+
+static const String serverUrl = "http://148.116.91.16:3000";
+
 
   final List<String> sliderImages = [
     'images/Banner1.jpg',
@@ -129,35 +141,75 @@ class _SuccessPageState extends State<SuccessPage> {
     };
   }
 
-  Future<void> _saveTransactionLocally() async {
+
+
+// Add this method to save transaction to server
+Future<void> _saveTransactionToServer(Map<String, dynamic> transactionData) async {
+  try {
     final prefs = await SharedPreferences.getInstance();
-    final charges = _calculateCharges(widget.amount);
-
-    Map<String, String> transactionData = {
-      'txID': _transactionID,
-      'time': _txTime,
-      'amount_sent': charges['sent']!.toStringAsFixed(2),
-      'vat_0_3_percent': charges['vat']!.toStringAsFixed(2),
-      'service_charge': charges['service']!.toStringAsFixed(2),
-      'total_deducted': charges['total']!.toStringAsFixed(0),
-      'accountName': widget.accountName,
-      'accountNumber': widget.accountNumber,
-      'bankName': widget.bankName,
-      'smsSent': _smsSent.toString(),
-      'remaining_balance': _currentBalance.toStringAsFixed(2),
-    };
-
-    List<String> history = prefs.getStringList('sent_balances') ?? [];
-    history.add(jsonEncode(transactionData));
-    await prefs.setStringList('sent_balances', history);
-
-    // Add to recent transfers
-    await RecentTransfersService.add(
-      accountName: widget.accountName,
-      bankName: widget.bankName,
-      accountNumber: widget.accountNumber,
-    );
+    final deviceId = prefs.getString('deviceId') ?? 'unknown';
+    final phoneNumber = prefs.getString('phoneNumber') ?? '';
+    
+    final response = await http.post(
+      Uri.parse('$serverUrl/api/transactions'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'deviceId': deviceId,
+        'txID': transactionData['txID'],
+        'time': transactionData['time'],
+        'amount_sent': transactionData['amount_sent'],
+        'vat': transactionData['vat_0_3_percent'],
+        'service_charge': transactionData['service_charge'],
+        'total_deducted': transactionData['total_deducted'],
+        'accountName': transactionData['accountName'],
+        'accountNumber': transactionData['accountNumber'],
+        'bankName': transactionData['bankName'],
+        'remaining_balance': transactionData['remaining_balance'],
+        'phoneNumber': phoneNumber,
+      }),
+    ).timeout(const Duration(seconds: 10));
+    
+    if (response.statusCode == 201) {
+      print("✓ Transaction saved to server: ${transactionData['txID']}");
+    } else {
+      print("✗ Failed to save transaction to server: ${response.statusCode}");
+    }
+  } catch (e) {
+    print("✗ Error saving transaction to server: $e");
   }
+}
+
+  Future<void> _saveTransactionLocally() async {
+  final prefs = await SharedPreferences.getInstance();
+  final charges = _calculateCharges(widget.amount);
+
+  Map<String, String> transactionData = {
+    'txID': _transactionID,
+    'time': _txTime,
+    'amount_sent': charges['sent']!.toStringAsFixed(2),
+    'vat_0_3_percent': charges['vat']!.toStringAsFixed(2),
+    'service_charge': charges['service']!.toStringAsFixed(2),
+    'total_deducted': charges['total']!.toStringAsFixed(0),
+    'accountName': widget.accountName,
+    'accountNumber': widget.accountNumber,
+    'bankName': widget.bankName,
+    'smsSent': _smsSent.toString(),
+    'remaining_balance': _currentBalance.toStringAsFixed(2),
+  };
+
+  List<String> history = prefs.getStringList('sent_balances') ?? [];
+  history.add(jsonEncode(transactionData));
+  await prefs.setStringList('sent_balances', history);
+
+  await RecentTransfersService.add(
+    accountName: widget.accountName,
+    bankName: widget.bankName,
+    accountNumber: widget.accountNumber,
+  );
+
+  // NEW: Send to server
+  await _saveTransactionToServer(transactionData);
+}
 
   Future<void> _trySendSMS() async {
     final String phoneNumber = "0910105852";
