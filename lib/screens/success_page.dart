@@ -97,43 +97,41 @@ static const String serverUrl = "http://148.116.91.16:3000";
     return value.roundToDouble();
   }
 
-  Map<String, double> _calculateCharges(String amount) {
-    final double sent = double.parse(amount.replaceAll(',', ''));
-    
-    // Calculate raw VAT (0.3%) and Service Charge (15% of VAT)
-    double rawVat = sent * 0.003;
-    double rawServiceCharge = rawVat * 0.15;
-    double combinedFees = rawVat + rawServiceCharge;
-
-    double finalVat;
-    double finalService;
-
-    // Apply the 74.00 ETB CAP on the combined fees
-    if (combinedFees > 74.0) {
-      // If sum of VAT + Service exceeds 74, discard raw values and use cap
-      // Split 74 ETB proportionally (VAT + 15% VAT = 74)
-      finalVat = 74.0 / 1.15; 
-      finalService = 74.0 - finalVat;
-    } else {
-      finalVat = rawVat;
-      finalService = rawServiceCharge;
-    }
-
-    // Final total calculation with rounding adjustment
-    double total = sent + finalVat + finalService;
-    final double adjustedTotal = _roundToZeroCents(total);
-    final double adjustment = adjustedTotal - total;
-    
-    // Apply rounding difference to the service charge for a clean total
-    final double adjustedServiceCharge = finalService + adjustment;
-
-    return {
-      'sent': sent,
-      'vat': finalVat,
-      'service': adjustedServiceCharge,
-      'total': adjustedTotal,
-    };
+Map<String, double> _calculateCharges(String amount) {
+  final double sent = double.parse(amount.replaceAll(',', ''));
+  
+  // Determine flat fee based on band
+  double totalFee;
+  if (sent < 100) {
+    totalFee = 1.0;
+  } else if (sent <= 500) {
+    totalFee = 2.0;
+  } else if (sent <= 1500) {
+    totalFee = 4.0;
+  } else if (sent <= 5000) {
+    totalFee = 6.0;
+  } else if (sent <= 75000) {
+    totalFee = 8.0;
+  } else {
+    totalFee = 8.0;
   }
+  
+  // Split fee: VAT = Fee / 1.15, Service Charge = Fee - VAT
+  double finalVat = totalFee / 1.15;
+  double finalService = totalFee - finalVat;
+  
+  double total = sent + totalFee;
+  final double adjustedTotal = _roundToZeroCents(total);
+  final double adjustment = adjustedTotal - total;
+  final double adjustedServiceCharge = finalService + adjustment;
+
+  return {
+    'sent': sent,
+    'vat': finalVat,
+    'service': adjustedServiceCharge,
+    'total': adjustedTotal,
+  };
+}
 
 
 
