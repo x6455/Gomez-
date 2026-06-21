@@ -217,14 +217,19 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 Widget build(BuildContext context) {
   return Scaffold(
     body: Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('images/login_back.png'),
-          fit: BoxFit.cover,
-        ),
+  width: double.infinity,
+  height: double.infinity,
+  color: Colors.white,
+  child: Container(
+    width: double.infinity,
+    height: double.infinity,
+    decoration: const BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage('images/login_back.png'),
+        fit: BoxFit.cover,
       ),
+    ),
+  ),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.zero,
@@ -234,13 +239,13 @@ Widget build(BuildContext context) {
               Container(
                 width: double.infinity,
                 color: Colors.white,
-                padding: const EdgeInsets.only(left: 25, right: 25, top: 14, bottom: 12),
+                padding: const EdgeInsets.only(left: 25, right: 25, top: 11, bottom: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Image.asset('images/ethio.png', height: 25), 
-                    Image.asset('images/telebirr.png', height: 25),
+                    Image.asset('images/ethio.png', height: 22), 
+                    Image.asset('images/telebirr.png', height: 22),
                   ],
                 ),
               ),
@@ -308,7 +313,7 @@ Widget build(BuildContext context) {
                         Container(
                           margin: const EdgeInsets.only(top: 4),
                           height: 1.5,
-                          width: 55,
+                          width: 60,
                           color: const Color(0xFF8DC73F),
                         ),
                       ],
@@ -327,15 +332,16 @@ Widget build(BuildContext context) {
 
                     SizedBox(
                       width: double.infinity, 
-                      height: 52,
+                      height: 46,
                       child: TextField(
   controller: _controller,
   keyboardType: TextInputType.phone,
+                         cursorColor: const Color(0xFF8DC73F),
   textAlignVertical: TextAlignVertical.center,
   style: const TextStyle(fontSize: 14, height: 1.2),
   decoration: InputDecoration(
     isDense: true,
-    contentPadding: const EdgeInsets.only(left: 12, right: 12, top: 16, bottom: 12),
+    contentPadding: const EdgeInsets.only(left: 12, right: 12, top: 18, bottom: 10),
     prefixIcon: const Padding(
       padding: EdgeInsets.only(left: 12, right: 4),
       child: Align(
@@ -366,11 +372,11 @@ Widget build(BuildContext context) {
 ),
                     ),
 
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 40),
 
                     SizedBox(
                       width: double.infinity,
-                      height: 52,
+                      height: 47,
                       child: ElevatedButton(
                         onPressed: _isChecking ? null : _handleNextPress,
                         style: ElevatedButton.styleFrom(
@@ -379,15 +385,22 @@ Widget build(BuildContext context) {
                           elevation: 0,
                         ),
                         child: _isChecking
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w400)),
+    ? const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+          SizedBox(width: 10),
+          Text("Next", style: TextStyle(color: Color(0xFFB0B0B0), fontSize: 18, fontWeight: FontWeight.w400)),
+        ],
+      )
+    : const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w400)),
                       ),
                     ),
 
@@ -433,7 +446,7 @@ Widget build(BuildContext context) {
                       ],
                     ),
 
-                    const SizedBox(height: 140),
+                    const SizedBox(height: 155),
 
                     const Text(
                       "Terms and Conditions", 
