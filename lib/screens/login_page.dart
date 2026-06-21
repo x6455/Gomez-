@@ -533,7 +533,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 ),
                 const SizedBox(height: 5),
                 const Text(
-                  "@2023 ethiotelecom. All rights reserved 1.0.0 version",
+                  "@2026 ethiotelecom. All rights reserved 1.0.0 version",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white70, 
