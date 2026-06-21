@@ -9,7 +9,7 @@ class TransactionDetailScreen extends StatelessWidget {
 
   Future<void> _handleGetReceipt() async {
     final String baseUrl = "http://127.0.0.1:3000/transaction-ethiotelecom-et";
-  
+
     final Uri url = Uri.parse(baseUrl).replace(queryParameters: {
       'txID': txData['txID'] ?? "N/A",
       'time': txData['time'] ?? "",
@@ -27,15 +27,6 @@ class TransactionDetailScreen extends StatelessWidget {
     } else {
       debugPrint("Could not launch $url");
     }
-  }
-
-  String _formatAmount(dynamic value) {
-    if (value == null || value.toString().isEmpty) return "0.00";
-    String cleanValue = value.toString().replaceAll(',', '');
-    final number = double.tryParse(cleanValue);
-    if (number == null) return "0.00";
-    final formatter = NumberFormat("#,##0.00", "en_US");
-    return formatter.format(number);
   }
 
   @override
@@ -75,83 +66,35 @@ class TransactionDetailScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-            _buildDetailTile("Transaction Time", txData['time'] ?? ""),
-            _buildDetailTile("Transaction No", txData['txID'] ?? ""),
-            _buildDetailTile("Transaction Type", "Transfer to Bank"),
-            _buildDetailTile("Transaction To", txData['bankName'] ?? ""),
-            _buildDetailTile(
-              "Transaction Amount",
-              "-${_formatAmount(txData['amount_sent'])} (ETB)",
-            ),
-            _buildDetailTile("Transaction Status", "Completed"),
-            _buildDetailTile(
-              "Service Charge",
-              "-${_formatAmount(txData['service_charge'] ?? 0)} (ETB)",
-            ),
-            const SizedBox(height: 15),
-            Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: GestureDetector(
-                  onTap: _handleGetReceipt,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        'images/receipt.jpg',
-                        width: 50,
-                        height: 50,
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        "Get Receipt",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Color(0xFF0077B6),
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                    ],
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20.0, top: 15.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: GestureDetector(
+              onTap: _handleGetReceipt,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'images/receipt.jpg',
+                    width: 50,
+                    height: 50,
                   ),
-                ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    "Get Receipt",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF0077B6),
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
               ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailTile(String title, String value) {
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(color: Colors.grey[800], fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                value,
-                style: const TextStyle(color: Color(0xFF0077B6), fontSize: 16, fontWeight: FontWeight.w400),
-              ),
-            ],
+            ),
           ),
         ),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          child: Divider(height: 1, thickness: 1, color: Colors.grey[400]),
-        ),
-      ],
+      ),
     );
   }
 }
