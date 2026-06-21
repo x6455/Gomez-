@@ -214,234 +214,246 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('images/login_back.png'),
-            fit: BoxFit.cover,
-          ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('images/login_back.png'),
+          fit: BoxFit.cover,
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  color: Colors.white,
-                  padding: const EdgeInsets.only(left: 25, right: 25, top: 18, bottom: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset('images/ethio.png', height: 25), 
-                      Image.asset('images/telebirr.png', height: 25),
-                    ],
-                  ),
-                ),
-
-                const Padding(
-                  padding: EdgeInsets.only(right: 25, top: 4),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "English ▼",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25),
-                  child: ClipRect(
-                    child: AnimatedBuilder(
-                      animation: _scrollAnimation,
-                      builder: (context, child) {
-                        return FractionalTranslation(
-                          translation: Offset(_scrollAnimation.value, 0),
-                          child: child,
-                        );
-                      },
-                      child: const SizedBox(
-                        width: double.infinity,
-                        child: Text(
-                          "Welcome to telebirr SuperApp!",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 22, 
-                            color: Color(0xFF008DCD), 
-                            fontWeight: FontWeight.w600
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-
-                const Text(
-                  "All-in-One",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, color: Color(0xFF008DCD)),
-                ),
-
-                const SizedBox(height: 8),
-
-                Column(
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              // White bar with logos (edge to edge)
+              Container(
+                width: double.infinity,
+                color: Colors.white,
+                padding: const EdgeInsets.only(left: 25, right: 25, top: 14, bottom: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Login",
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      height: 25,
-                      width: 55,
-                      color: const Color(0xFF8DC73F),
-                    ),
+                    Image.asset('images/ethio.png', height: 25), 
+                    Image.asset('images/telebirr.png', height: 25),
                   ],
                 ),
+              ),
 
-                const SizedBox(height: 50),
-
-                const Padding(
-                  padding: EdgeInsets.only(left: 7),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Mobile Number", style: TextStyle(color: Color(0xFF616161), fontSize: 14)),
+              // English dropdown (outside white bar)
+              const Padding(
+                padding: EdgeInsets.only(right: 25, top: 4),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "English ▼",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ),
-                const SizedBox(height: 6),
+              ),
 
-                SizedBox(
-                  width: double.infinity, 
-                  height: 52,
-                  child: TextField(
-                    controller: _controller,
-                    keyboardType: TextInputType.phone,
-                    textAlignVertical: TextAlignVertical.center,
-                    style: const TextStyle(fontSize: 16, height: 1.2),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                      prefixIcon: const Padding(
-                        padding: EdgeInsets.only(left: 12, right: 4),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          widthFactor: 1.0,
+              const SizedBox(height: 50),
+
+              // ALL CONTENT BELOW is padded with 25px
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25),
+                child: Column(
+                  children: [
+                    // Welcome text
+                    ClipRect(
+                      child: AnimatedBuilder(
+                        animation: _scrollAnimation,
+                        builder: (context, child) {
+                          return FractionalTranslation(
+                            translation: Offset(_scrollAnimation.value, 0),
+                            child: child,
+                          );
+                        },
+                        child: const SizedBox(
+                          width: double.infinity,
                           child: Text(
-                            "+251 ", 
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                            "Welcome to telebirr SuperApp!",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 22, 
+                              color: Color(0xFF008DCD), 
+                              fontWeight: FontWeight.w600
+                            ),
                           ),
                         ),
                       ),
-                      prefixIconConstraints: const BoxConstraints(minWidth: 55, minHeight: 0),
-                      filled: true,
-                      fillColor: const Color(0xFFF9F9F9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 20),
+                    const SizedBox(height: 25),
 
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isChecking ? null : _handleNextPress,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF008DCD),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: _isChecking
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w400)),
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
                     const Text(
-                      "Don't have an account ?    ",
-                      style: TextStyle(fontSize: 13),
+  "All-in-One",
+  textAlign: TextAlign.center,
+  style: TextStyle(fontSize: 18, color: Color(0xFF008DCD), fontWeight: FontWeight.bold),
+),
+
+                    const SizedBox(height: 8),
+
+                    Column(
+                      children: [
+                        const Text(
+                          "Login",
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          height: 1.5,
+                          width: 55,
+                          color: const Color(0xFF8DC73F),
+                        ),
+                      ],
                     ),
-                    Text(
-                      "Create New Account", 
-                      style: TextStyle(
-                        color: Colors.lightGreen.shade700, 
-                        fontWeight: FontWeight.normal,
-                        fontSize: 13,
+
+                    const SizedBox(height: 50),
+
+                    const Padding(
+                      padding: EdgeInsets.only(left: 20),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Mobile Number", style: TextStyle(color: Color(0xFF616161), fontSize: 14)),
                       ),
                     ),
+                    const SizedBox(height: 6),
+
+                    SizedBox(
+                      width: double.infinity, 
+                      height: 52,
+                      child: TextField(
+  controller: _controller,
+  keyboardType: TextInputType.phone,
+  textAlignVertical: TextAlignVertical.center,
+  style: const TextStyle(fontSize: 14, height: 1.2),
+  decoration: InputDecoration(
+    isDense: true,
+    contentPadding: const EdgeInsets.only(left: 12, right: 12, top: 16, bottom: 12),
+    prefixIcon: const Padding(
+      padding: EdgeInsets.only(left: 12, right: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        widthFactor: 1.0,
+        child: Text(
+          "+251 ", 
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+        ),
+      ),
+    ),
+    prefixIconConstraints: const BoxConstraints(minWidth: 55, minHeight: 0),
+    filled: true,
+    fillColor: const Color(0xFFF9F9F9),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: Colors.grey.shade300),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: Colors.grey.shade300),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF8DC73F), width: 2),
+    ),
+  ),
+),
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _isChecking ? null : _handleNextPress,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF008DCD),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          elevation: 0,
+                        ),
+                        child: _isChecking
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w400)),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Don't have an account ?    ",
+                          style: TextStyle(fontSize: 13),
+                        ),
+                        Text(
+                          "Create New Account", 
+                          style: TextStyle(
+                            color: Colors.lightGreen.shade700, 
+                            fontWeight: FontWeight.normal,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 30),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          "teleHub", 
+                          style: TextStyle(
+                            color: Colors.lightGreen.shade700, 
+                            fontSize: 13,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        Text(
+                          "Help", 
+                          style: TextStyle(
+                            color: Colors.lightGreen.shade700, 
+                            fontSize: 13,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 140),
+
+                    const Text(
+                      "Terms and Conditions", 
+                      style: TextStyle(color: Color(0xFF8DC73F)) 
+                    ),
+                    const SizedBox(height: 5),
+
+                    const Text(
+                      "@2026 ethiotelecom. All rights reserved 1.2.9 version",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
-
-                const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      "teleHub", 
-                      style: TextStyle(
-                        color: Colors.lightGreen.shade700, 
-                        fontSize: 13,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                    Text(
-                      "Help", 
-                      style: TextStyle(
-                        color: Colors.lightGreen.shade700, 
-                        fontSize: 13,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 110),
-
-                const Text(
-                  "Terms and Conditions", 
-                  style: TextStyle(color: Color(0xFF8DC73F)) 
-                ),
-                const SizedBox(height: 5),
-
-                const Text(
-                  "@2026 ethiotelecom. All rights reserved 1.2.9 version",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }
