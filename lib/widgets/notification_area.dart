@@ -11,13 +11,15 @@ class NotificationArea extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Search Icon
+        // Custom Search Icon - thin circle, short handle
         const Padding(
           padding: EdgeInsets.only(right: 5.0),
-          child: Icon(
-            Icons.search,
-            color: Colors.white,
-            size: 20,
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CustomPaint(
+              painter: ThinSearchIconPainter(color: Colors.white),
+            ),
           ),
         ),
         
@@ -51,4 +53,35 @@ class NotificationArea extends StatelessWidget {
       ],
     );
   }
+}
+
+class ThinSearchIconPainter extends CustomPainter {
+  final Color color;
+  
+  ThinSearchIconPainter({this.color = Colors.white});
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    
+    // Thin circle
+    canvas.drawCircle(
+      Offset(size.width * 0.38, size.height * 0.38),
+      size.width * 0.28,
+      paint,
+    );
+    
+    // Short handle
+    canvas.drawLine(
+      Offset(size.width * 0.58, size.height * 0.58),
+      Offset(size.width * 0.85, size.height * 0.85),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
