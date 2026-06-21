@@ -85,7 +85,7 @@ class TransactionDetailScreen extends StatelessWidget {
                     "Get Receipt",
                     style: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF0077B6),
+                      color: Color(0xFF000000),
                       fontWeight: FontWeight.normal,
                     ),
                   ),
