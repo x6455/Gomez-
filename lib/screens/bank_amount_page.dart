@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pin_dialog.dart';
 
 class BankAmountPage extends StatefulWidget {
@@ -26,6 +27,11 @@ class _BankAmountPageState extends State<BankAmountPage> {
 
   final Color _primaryGreen = const Color(0xFF8DC73F);
   final Color _purpleColor = const Color(0xFFA349E5);
+  
+  // Balance variables
+  double _currentBalance = 0.0;
+  final double _initialBalance = 176864.00;
+  bool _balanceLoaded = false;
 
   final Map<String, Color> _bankColors = {
     'CBE': const Color(0xFFA349E5),
@@ -41,13 +47,11 @@ class _BankAmountPageState extends State<BankAmountPage> {
     'Bank of Abyssinia': 'images/abyssinia.jpg',
   };
 
-  // Helper to get bank color
   Color _getBankColor(String bankName) {
     if (bankName.isEmpty) return Colors.white;
     return _bankColors[bankName] ?? _purpleColor;
   }
 
-  // Helper to get bank logo
   String _getBankLogo(String bankName) {
     if (bankName.isEmpty) return '';
     return _bankLogos[bankName] ?? 'images/cbe.png';
@@ -56,6 +60,7 @@ class _BankAmountPageState extends State<BankAmountPage> {
   @override
   void initState() {
     super.initState();
+    _loadBalance();
     _cursorTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (mounted) {
         setState(() {
@@ -69,6 +74,24 @@ class _BankAmountPageState extends State<BankAmountPage> {
   void dispose() {
     _cursorTimer?.cancel();
     super.dispose();
+  }
+
+  // Load balance from SharedPreferences
+  Future<void> _loadBalance() async {
+    final prefs = await SharedPreferences.getInstance();
+    double balance = prefs.getDouble('remaining_balance') ?? _initialBalance;
+    
+    if (mounted) {
+      setState(() {
+        _currentBalance = balance;
+        _balanceLoaded = true;
+      });
+    }
+  }
+
+  // Refresh balance when returning to this page
+  Future<void> _refreshBalance() async {
+    await _loadBalance();
   }
 
   void _onKeyTap(String value) {
@@ -101,7 +124,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
           ),
           child: Column(
             children: [
-              // Close Button
               Align(
                 alignment: Alignment.topLeft,
                 child: IconButton(
@@ -110,7 +132,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
                 ),
               ),
 
-              // Title
               const Text(
                 "Transfer To Bank",
                 style: TextStyle(
@@ -121,7 +142,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
               ),
               const SizedBox(height: 20),
 
-              // Amount Display
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -148,7 +168,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
               ),
               const SizedBox(height: 30),
 
-              // Payment Method Section
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -203,7 +222,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
 
               const Spacer(),
 
-              // Bottom Transfer Button
               Padding(
                 padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
                 child: SizedBox(
@@ -243,7 +261,10 @@ class _BankAmountPageState extends State<BankAmountPage> {
           ),
         );
       },
-    );
+    ).then((_) {
+      // Refresh balance when bottom sheet closes (after possible transaction)
+      _refreshBalance();
+    });
   }
 
   String _formatAmount(String value) {
@@ -254,6 +275,12 @@ class _BankAmountPageState extends State<BankAmountPage> {
 
     final formatter = NumberFormat("#,##0.00", "en_US");
     return formatter.format(number);
+  }
+  
+  // Format balance for display
+  String _formatBalance(double balance) {
+    final formatter = NumberFormat("#,##0.00", "en_US");
+    return formatter.format(balance);
   }
 
   @override
@@ -370,9 +397,10 @@ class _BankAmountPageState extends State<BankAmountPage> {
                                 ],
                               ),
                               Divider(thickness: 0.5, height: 30, color: Colors.grey.withOpacity(0.2)),
-                              const Text(
-                                "Balance: 33,975.41(ETB)",
-                                style: TextStyle(
+                              // Dynamic balance display
+                              Text(
+                                "Balance: ${_formatBalance(_currentBalance)}(ETB)",
+                                style: const TextStyle(
                                   color: Color(0xFF4A6572),
                                   fontWeight: FontWeight.normal,
                                   fontSize: 14,
