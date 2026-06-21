@@ -229,8 +229,7 @@ Widget build(BuildContext context) {
         fit: BoxFit.cover,
       ),
     ),
-  ),
-      child: SafeArea(
+    child: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.zero,
           child: Column(
