@@ -25,7 +25,7 @@ class BalanceInfo extends StatefulWidget {
 
 class _BalanceInfoState extends State<BalanceInfo> {
   bool showBalance = false;
-  double _storedBalance = 56894.00; // Default matches your initial value
+  double _storedBalance = 120894.00; // Default matches your initial value
 
   @override
   void initState() {
