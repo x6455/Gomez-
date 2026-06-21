@@ -297,8 +297,10 @@ const SizedBox(height: 8),
 Column(
   children: [
     const Text(
-      "Login",
-                    Container(
+  "Login",
+  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+),
+Container(
                       margin: const EdgeInsets.only(top: 4),
                       height: 2,
                       width: 55,
@@ -375,8 +377,7 @@ child: Text("Mobile Number", style: TextStyle(color: Colors.grey.shade700, fontS
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18), FontWieght: w400),
-                  ),
+: const Text("Next", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w400)),                  ),
                 ),
 
                 const SizedBox(height: 25),
@@ -436,7 +437,7 @@ child: Text("Mobile Number", style: TextStyle(color: Colors.grey.shade700, fontS
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 20),
-               ),
+               
               ],
             ),
           ),
