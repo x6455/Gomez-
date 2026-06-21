@@ -219,238 +219,330 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F9E9),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              
-              // Top Logos and English selector
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Image.asset('images/ethio.png', height: 25), 
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Image.asset('images/telebirr.png', height: 25), 
-                      const SizedBox(height: 4),
-                      const Text(
-                        "English ▼",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 60),
-
-              // Welcome text
-              ClipRect(
-                child: AnimatedBuilder(
-                  animation: _scrollAnimation,
-                  builder: (context, child) {
-                    return FractionalTranslation(
-                      translation: Offset(_scrollAnimation.value, 0),
-                      child: child,
-                    );
-                  },
-                  child: const SizedBox(
-                    width: double.infinity,
-                    child: Column(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/login_back.png'),
+            fit: BoxFit.cover, // This makes it cover the full page
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 25),
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                
+                // Top Logos and English selector - now on top of the background
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset('images/ethio.png', height: 25), 
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          "Welcome to telebirr SuperApp",
-                          textAlign: TextAlign.center,
+                        Image.asset('images/telebirr.png', height: 25), 
+                        const SizedBox(height: 4),
+                        const Text(
+                          "English ▼",
                           style: TextStyle(
-                            fontSize: 22, 
-                            color: Color(0xFF008DCD), 
-                            fontWeight: FontWeight.w600
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 13,
+                            color: Colors.white, // Changed to white for visibility on background
                           ),
                         ),
-                        Text(
-                          "All-in-One",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 18, color: Color(0xFF008DCD)),
+                      ],
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 60),
+
+                // Welcome text
+                ClipRect(
+                  child: AnimatedBuilder(
+                    animation: _scrollAnimation,
+                    builder: (context, child) {
+                      return FractionalTranslation(
+                        translation: Offset(_scrollAnimation.value, 0),
+                        child: child,
+                      );
+                    },
+                    child: const SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        children: [
+                          Text(
+                            "Welcome to telebirr SuperApp",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 22, 
+                              color: Colors.white, // Changed for visibility
+                              fontWeight: FontWeight.w600,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 4.0,
+                                  color: Colors.black26,
+                                  offset: Offset(1, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            "All-in-One",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18, 
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 4.0,
+                                  color: Colors.black26,
+                                  offset: Offset(1, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                Column(
+                  children: [
+                    const Text(
+                      "Login",
+                      style: TextStyle(
+                        fontSize: 28, 
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 4.0,
+                            color: Colors.black26,
+                            offset: Offset(1, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      height: 3,
+                      width: 50,
+                      color: const Color(0xFF8DC73F),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 50),
+
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Mobile Number", 
+                    style: TextStyle(
+                      color: Colors.white, 
+                      fontSize: 16,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 2.0,
+                          color: Colors.black38,
+                          offset: Offset(0.5, 0.5),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 10),
 
-              const SizedBox(height: 30),
-
-              Column(
-                children: [
-                  const Text(
-                    "Login",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(top: 4),
-                    height: 3,
-                    width: 50,
-                    color: const Color(0xFF8DC73F),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 50),
-
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text("Mobile Number", style: TextStyle(color: Colors.grey, fontSize: 16)),
-              ),
-              const SizedBox(height: 10),
-
-              // Mobile Number Input Box
-              SizedBox(
-                width: double.infinity, 
-                height: 55,
-                child: TextField(
-                  controller: _controller,
-                  keyboardType: TextInputType.phone,
-                  textAlignVertical: TextAlignVertical.center,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    prefixIcon: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text("+251 ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
-                        ],
+                // Mobile Number Input Box
+                SizedBox(
+                  width: double.infinity, 
+                  height: 55,
+                  child: TextField(
+                    controller: _controller,
+                    keyboardType: TextInputType.phone,
+                    textAlignVertical: TextAlignVertical.center,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "+251 ", 
+                              style: TextStyle(
+                                fontSize: 16, 
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFFF9F9F9),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.95),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // Error message display
-              if (_errorMessage != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          _errorMessage!,
-                          style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+                // Error message display
+                if (_errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 20),
+
+                // Next Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: ElevatedButton(
+                    onPressed: _isChecking ? null : _handleNextPress,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF008DCD),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      disabledBackgroundColor: const Color(0xFF008DCD),
+                      disabledForegroundColor: Colors.white.withOpacity(0.7),
+                    ),
+                    child: _isChecking
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Next",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Text(
+                            "Next",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 25),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Don't have an account ? ",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    Text(
+                      "Create New Account", 
+                      style: TextStyle(
+                        color: Colors.lightGreen.shade300, 
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      "teleHub", 
+                      style: TextStyle(
+                        color: Colors.lightGreen.shade300, 
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      "Help", 
+                      style: TextStyle(
+                        color: Colors.lightGreen.shade300, 
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 60),
+
+                const Text(
+                  "Terms and Conditions", 
+                  style: TextStyle(
+                    color: Color(0xFF8DC73F),
+                    shadows: [
+                      Shadow(
+                        blurRadius: 2.0,
+                        color: Colors.black38,
+                        offset: Offset(0.5, 0.5),
                       ),
                     ],
                   ),
                 ),
-
-              const SizedBox(height: 20),
-
-              // Next Button - No color change, just blur text + loading
-              SizedBox(
-                width: double.infinity,
-                height: 45,
-                child: ElevatedButton(
-                  onPressed: _isChecking ? null : _handleNextPress,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF008DCD),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    disabledBackgroundColor: const Color(0xFF008DCD), // Keep same color
-                    disabledForegroundColor: Colors.white.withOpacity(0.7), // Blur effect on text
+                const SizedBox(height: 5),
+                const Text(
+                  "@2023 ethiotelecom. All rights reserved 1.0.0 version",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70, 
+                    fontSize: 14,
                   ),
-                  child: _isChecking
-                      ? const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Next",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            ),
-                          ],
-                        )
-                      : const Text(
-                          "Next",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
                 ),
-              ),
-
-              const SizedBox(height: 25),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Don't have an account ? "),
-                  Text(
-                    "Create New Account", 
-                    style: TextStyle(color: Colors.lightGreen.shade700, fontWeight: FontWeight.bold)
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text("teleHub", style: TextStyle(color: Colors.lightGreen.shade700, fontSize: 16)),
-                  Text("Help", style: TextStyle(color: Colors.lightGreen.shade700, fontSize: 16)),
-                ],
-              ),
-
-              const SizedBox(height: 60),
-
-              const Text(
-                "Terms and Conditions", 
-                style: TextStyle(color: Color(0xFF8DC73F)) 
-              ),
-              const SizedBox(height: 5),
-              const Text(
-                "@2023 ethiotelecom. All rights reserved 1.0.0 version",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              const SizedBox(height: 20),
-            ],
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
