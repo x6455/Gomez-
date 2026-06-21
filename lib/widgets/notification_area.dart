@@ -20,8 +20,8 @@ class NotificationArea extends StatelessWidget {
             size: 20,
           ),
         ),
-        
-        // Notification Icon with Badge and Navigation
+
+        // Notification Icon without Badge
         Padding(
           padding: const EdgeInsets.only(right: 15),
           child: GestureDetector(
@@ -33,19 +33,14 @@ class NotificationArea extends StatelessWidget {
                 ),
               );
             },
-            child: const Badge(
-              label: Text('1'),
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              child: Icon(
-                Icons.notifications_none_outlined,
-                color: Colors.white,
-                size: 20,
-              ),
+            child: const Icon(
+              Icons.notifications_none_outlined,
+              color: Colors.white,
+              size: 20,
             ),
           ),
         ),
-        
+
         // Language Dropdown (defined in home_screen.dart)
         const DropDownLang()
       ],
