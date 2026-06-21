@@ -34,7 +34,7 @@ class _SuccessPageState extends State<SuccessPage> {
 
   // --- BALANCE CONFIGURATION ---
   double _currentBalance = 0.0;
-  final double _initialBalance = 76864.00; // Starting Value
+  final double _initialBalance = 176864.00; // Starting Value
   final double _resetThreshold = 1000.00;   // Reset trigger point
   // -----------------------------
 
