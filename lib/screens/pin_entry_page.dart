@@ -37,7 +37,10 @@ class _PinEntryPageState extends State<PinEntryPage> {
         Future.delayed(const Duration(milliseconds: 500), () {
           setState(() => _pin = "");
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Incorrect PIN. Please try again.")),
+            const SnackBar(
+              content: Text("Incorrect PIN. Please try again."),
+              duration: Duration(seconds: 2),
+            ),
           );
         });
       }
@@ -58,16 +61,26 @@ class _PinEntryPageState extends State<PinEntryPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black, size: 28),
+          // Smaller, lighter X button
+          icon: const Icon(
+            Icons.close, 
+            color: Color(0xFF757575), 
+            size: 22,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Column(
         children: [
           const SizedBox(height: 40),
+          // Lighter "Enter PIN" text
           const Text(
             "Enter PIN",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 22, 
+              fontWeight: FontWeight.w400,
+              color: Color(0xFF424242),
+            ),
           ),
           const SizedBox(height: 30),
           
@@ -93,14 +106,19 @@ class _PinEntryPageState extends State<PinEntryPage> {
           ),
           
           const SizedBox(height: 25),
+          // Bolder "Forgot PIN" - removed question mark
           const Text(
-            "Forgot PIN?",
-            style: TextStyle(color: Color(0xFF000000), fontSize: 16, fontWeight: FontWeight.w400),
+            "Forgot PIN",
+            style: TextStyle(
+              color: Color(0xFF000000), 
+              fontSize: 16, 
+              fontWeight: FontWeight.w700,
+            ),
           ),
           
           const Spacer(),
 
-          // Custom Number Pad
+          // Custom Number Pad - numbers bolder
           Container(
             padding: const EdgeInsets.only(bottom: 20),
             child: Column(
@@ -150,7 +168,12 @@ class _PinEntryPageState extends State<PinEntryPage> {
           alignment: Alignment.center,
           child: Text(
             number,
-            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w400),
+            // Bolder numbers
+            style: const TextStyle(
+              fontSize: 30, 
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
           ),
         ),
       ),
