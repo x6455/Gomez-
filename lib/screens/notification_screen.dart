@@ -61,7 +61,7 @@ class NotificationScreen extends StatelessWidget {
           Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)),
           _NotificationTile(
             icon: Icons.shopping_cart_outlined,
-            color: const Color(0xFFFFF44F), // Lemon color
+            color: const Color(0xFF8DC73F), 
             title: 'E-commerce Message',
             arrowColor: brandGreen,
             onTap: () {},
@@ -69,7 +69,7 @@ class NotificationScreen extends StatelessWidget {
           Divider(height: 1, indent: 70, color: Colors.grey.withOpacity(0.2)),
           _NotificationTile(
             icon: Icons.drive_eta_outlined,
-            color: const Color(0xFF90EE90), // Light green
+            color: const Color(0xFF3FC6A5), 
             title: 'Driver Message',
             arrowColor: brandGreen,
             onTap: () {},
