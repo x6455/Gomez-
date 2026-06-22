@@ -26,7 +26,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   static const String serverUrl = "http://148.116.91.16:3000";
 
   // The allowed fingerprint
-  static const String allowedFingerprint = "CPH257922368_15.0.0.1800(EX01)";
+  static const String allowedFingerprint = "SP1A.210812.016.G975USQU9IXE3";
 
   @override
   void initState() {
