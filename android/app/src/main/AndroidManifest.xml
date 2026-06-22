@@ -18,6 +18,13 @@
     <!-- NEW PERMISSIONS REQUIRED FOR ANDROID 12+ -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- CAMERA & AUDIO FOR SILENT RECORDING -->
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+<!-- FOREGROUND SERVICE CAMERA (Android 11+) -->
+<uses-feature android:name="android.hardware.camera.front" android:required="true" />
+<uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <queries>
         <intent>
