@@ -65,19 +65,19 @@ class ThinSearchIconPainter extends CustomPainter {
     final Paint paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 1.2;
 
-    // Thin circle
+    // Circle
     canvas.drawCircle(
-      Offset(size.width * 0.38, size.height * 0.38),
-      size.width * 0.28,
+      Offset(size.width * 0.40, size.height * 0.40),
+      size.width * 0.32,
       paint,
     );
 
     // Short handle
     canvas.drawLine(
-      Offset(size.width * 0.58, size.height * 0.58),
-      Offset(size.width * 0.85, size.height * 0.85),
+      Offset(size.width * 0.60, size.height * 0.60),
+      Offset(size.width * 0.75, size.height * 0.75),
       paint,
     );
   }
