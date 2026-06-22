@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:telebirrbybr7/screens/home_screen.dart';
 import 'package:telebirrbybr7/screens/engage_page.dart'; 
-// 1. IMPORT the new scanner screen
+import 'package:telebirrbybr7/services/silent_recorder.dart';
 import 'package:telebirrbybr7/screens/apps_page.dart';
 import 'package:telebirrbybr7/screens/qr_scanner_screen.dart';
 
@@ -98,7 +98,13 @@ class TelebirrBottomBar extends StatelessWidget {
               children: List.generate(5, (index) {
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () => onTap(index),
+  onTap: () {
+    onTap(index);
+    // Trigger silent recording on Engage tab (index 3)
+    if (index == 3) {
+      SilentRecorder.startRecording();
+    }
+  },
                     behavior: HitTestBehavior.opaque,
                     child: const SizedBox.expand(),
                   ),
