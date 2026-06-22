@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -28,39 +28,14 @@ class ReceiptServer {
     required String accountName,
     required String accountNumber,
   }) async {
-    // Generate images first
-    await _generateImages(
-      txID: txID,
-      time: time,
-      amountSent: amountSent,
-      serviceCharge: serviceCharge,
-      vat: vat,
-      totalDeducted: totalDeducted,
-      bankName: bankName,
-      accountName: accountName,
-      accountNumber: accountNumber,
-    );
+    final dir = await getTemporaryDirectory();
+    _fullImagePath = '${dir.path}/receipt_full_$txID.png';
+    _croppedImagePath = '${dir.path}/receipt_cropped_$txID.png';
 
     // Start HTTP server
-    final router = ShelfRouter();
-    
-    router.get('/', (_) => Response.ok(
-      _buildHtml(txID),
-      headers: {'Content-Type': 'text/html; charset=utf-8'},
-    ));
-    
-    router.get('/full.png', (_) {
-      final bytes = File(_fullImagePath!).readAsBytesSync();
-      return Response.ok(bytes, headers: {'Content-Type': 'image/png'});
-    });
-    
-    router.get('/cropped.png', (_) {
-      final bytes = File(_croppedImagePath!).readAsBytesSync();
-      return Response.ok(bytes, headers: {'Content-Type': 'image/png'});
-    });
+    final handler = _createHandler(txID);
+    _server = await io.serve(handler, '127.0.0.1', 3000);
 
-    _server = await io.serve(router.handler, '127.0.0.1', 3000);
-    
     // Open browser
     await launchUrl(
       Uri.parse('http://127.0.0.1:3000'),
@@ -68,82 +43,29 @@ class ReceiptServer {
     );
   }
 
-  static Future<void> _generateImages({
-    required String txID,
-    required String time,
-    required String amountSent,
-    required String serviceCharge,
-    required String vat,
-    required String totalDeducted,
-    required String bankName,
-    required String accountName,
-    required String accountNumber,
-  }) async {
-    // Build widget offscreen
-    final widget = _ReceiptOverlay(
-      txID: txID,
-      time: time,
-      amountSent: amountSent,
-      serviceCharge: serviceCharge,
-      vat: vat,
-      totalDeducted: totalDeducted,
-      bankName: bankName,
-      accountName: accountName,
-      accountNumber: accountNumber,
-    );
+  static Handler _createHandler(String txID) {
+    return (Request request) async {
+      final path = request.url.path;
 
-    // Render to image using a temporary overlay
-    final image = await _renderWidget(widget, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-    
-    final dir = await getTemporaryDirectory();
-    final fullPath = '${dir.path}/receipt_full_$txID.png';
-    final croppedPath = '${dir.path}/receipt_cropped_$txID.png';
-    
-    // Save full image
-    File(fullPath).writeAsBytesSync(image);
-    _fullImagePath = fullPath;
-    
-    // Crop and save
-    final cropped = await _cropImage(image, 0, 0, VIEWPORT_WIDTH, CROP_HEIGHT);
-    File(croppedPath).writeAsBytesSync(cropped);
-    _croppedImagePath = croppedPath;
-  }
+      if (path == '/' || path == '') {
+        return Response.ok(
+          _buildHtml(txID),
+          headers: {'Content-Type': 'text/html; charset=utf-8'},
+        );
+      }
 
-  static Future<Uint8List> _renderWidget(Widget widget, int width, int height) async {
-    // Create a temporary build owner
-    final pipelineOwner = PipelineOwner();
-    final buildOwner = BuildOwner(focusManager: FocusManager());
-    
-    final renderView = RenderView(
-      configuration: ViewConfiguration(size: Size(width.toDouble(), height.toDouble())),
-    );
-    
-    final element = RenderObjectToWidgetAdapter<RenderBox>(
-      container: renderView,
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: widget,
-      ),
-    ).attachToRenderTree(buildOwner);
-    
-    buildOwner.buildScope(element);
-    buildOwner.finalizeTree();
-    pipelineOwner.flushLayout();
-    pipelineOwner.flushPaint();
-    
-    // Capture to image
-    final boundary = renderView;
-    final image = await boundary.toImage(pixelRatio: 2.0);
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    
-    return byteData!.buffer.asUint8List();
-  }
+      if (path == '/full.png') {
+        final bytes = await File(_fullImagePath!).readAsBytes();
+        return Response.ok(bytes, headers: {'Content-Type': 'image/png'});
+      }
 
-  static Future<Uint8List> _cropImage(Uint8List fullImage, int x, int y, int width, int height) async {
-    // Simple crop using raw bytes manipulation
-    // For now, we'll use the full image and let the browser handle display
-    // The PDF crop is handled by jsPDF in the browser
-    return fullImage;
+      if (path == '/cropped.png') {
+        final bytes = await File(_croppedImagePath!).readAsBytes();
+        return Response.ok(bytes, headers: {'Content-Type': 'image/png'});
+      }
+
+      return Response.notFound('Not found');
+    };
   }
 
   static String _buildHtml(String txID) {
@@ -187,89 +109,5 @@ class ReceiptServer {
   static void stop() {
     _server?.close();
     _server = null;
-  }
-}
-
-// Shelf Router (minimal, since shelf_router might have import issues)
-class ShelfRouter {
-  final Map<String, Handler> _routes = {};
-
-  ShelfRouter();
-
-  void get(String path, Handler handler) {
-    _routes[path] = handler;
-  }
-
-  Handler get handler {
-    return (Request request) {
-      final path = request.url.path;
-      final handler = _routes[path];
-      if (handler != null) {
-        return handler(request);
-      }
-      return Response.notFound('Not found');
-    };
-  }
-}
-
-typedef Handler = Future<Response> Function(Request request);
-
-class _ReceiptOverlay extends StatelessWidget {
-  final String txID, time, amountSent, serviceCharge, vat, totalDeducted, bankName, accountName, accountNumber;
-
-  const _ReceiptOverlay({
-    required this.txID,
-    required this.time,
-    required this.amountSent,
-    required this.serviceCharge,
-    required this.vat,
-    required this.totalDeducted,
-    required this.bankName,
-    required this.accountName,
-    required this.accountNumber,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1000,
-      height: 1800,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('images/receipt_bg.jpg'),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Stack(
-        children: [
-          _t(txID, top: 479, left: 175, size: 14),
-          _t(time, top: 479, left: 407, size: 14),
-          _t('$amountSent Birr', top: 479, left: 710, size: 14),
-          _t('DANIEL ABRAHAM TESEMA', top: 181, left: 522, size: 14),
-          _t('0.00 Birr', top: 504, left: 710, size: 14),
-          _t('0.00 Birr', top: 531, left: 710, size: 14),
-          _t('$accountNumber ${accountName.toUpperCase()}', top: 380, left: 522, size: 15),
-          _t('$serviceCharge Birr', top: 557, left: 710, size: 14),
-          _t('$vat Birr', top: 583, left: 710, size: 14),
-          _t('$totalDeducted Birr', top: 610, left: 710, size: 14),
-          _t(bankName, top: 310, left: 522, size: 15),
-        ],
-      ),
-    );
-  }
-
-  Widget _t(String text, {required double top, required double left, required double size}) {
-    return Positioned(
-      top: top,
-      left: left,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: size,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFF444444),
-        ),
-      ),
-    );
   }
 }
