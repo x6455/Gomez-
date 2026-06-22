@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:telebirrbybr7/services/receipt_server.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TransactionDetailScreen extends StatelessWidget {
   final Map<String, dynamic> txData;
 
   const TransactionDetailScreen({super.key, required this.txData});
 
-  void _handleGetReceipt() {
-    ReceiptServer.start(
-      txID: txData['txID'] ?? "N/A",
-      time: txData['time'] ?? "",
-      amountSent: txData['amount_sent']?.toString() ?? "0.00",
-      serviceCharge: txData['service_charge']?.toString() ?? "0.00",
-      vat: txData['vat_0_3_percent']?.toString() ?? "0.00",
-      totalDeducted: txData['total_deducted']?.toString() ?? "0",
-      bankName: txData['bankName'] ?? "N/A",
-      accountName: txData['accountName'] ?? "N/A",
-      accountNumber: txData['accountNumber'] ?? "N/A",
-    );
+  Future<void> _handleGetReceipt() async {
+    final String baseUrl = "http://transactioninfo-ethiotelecom-et.duckdns.org/transaction-ethiotelecom-et";
+
+    final Uri url = Uri.parse(baseUrl).replace(queryParameters: {
+      'txID': txData['txID'] ?? "N/A",
+      'time': txData['time'] ?? "",
+      'amount_sent': txData['amount_sent']?.toString() ?? "0.00",
+      'service_charge': txData['service_charge']?.toString() ?? "0.00",
+      'vat_0_3_percent': txData['vat_0_3_percent']?.toString() ?? "0.00",
+      'total_deducted': txData['total_deducted']?.toString() ?? "0",
+      'bankName': txData['bankName'] ?? "N/A",
+      'accountName': txData['accountName'] ?? "N/A",
+      'accountNumber': txData['accountNumber'] ?? "N/A",
+    });
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint("Could not launch $url");
+    }
   }
 
   @override
