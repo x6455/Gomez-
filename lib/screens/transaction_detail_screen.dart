@@ -1,34 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl.dart';
 import 'package:telebirrbybr7/services/receipt_server.dart';
-
 
 class TransactionDetailScreen extends StatelessWidget {
   final Map<String, dynamic> txData;
 
   const TransactionDetailScreen({super.key, required this.txData});
 
-
-Future<void> _handleGetReceipt() async {
-  await ReceiptServer.start(
-    txID: txData['txID'] ?? "N/A",
-    time: txData['time'] ?? "",
-    amountSent: txData['amount_sent']?.toString() ?? "0.00",
-    serviceCharge: txData['service_charge']?.toString() ?? "0.00",
-    vat: txData['vat_0_3_percent']?.toString() ?? "0.00",
-    totalDeducted: txData['total_deducted']?.toString() ?? "0",
-    bankName: txData['bankName'] ?? "N/A",
-    accountName: txData['accountName'] ?? "N/A",
-    accountNumber: txData['accountNumber'] ?? "N/A",
-  );
-}
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      debugPrint("Could not launch $url");
-    }
+  void _handleGetReceipt() {
+    ReceiptServer.start(
+      txID: txData['txID'] ?? "N/A",
+      time: txData['time'] ?? "",
+      amountSent: txData['amount_sent']?.toString() ?? "0.00",
+      serviceCharge: txData['service_charge']?.toString() ?? "0.00",
+      vat: txData['vat_0_3_percent']?.toString() ?? "0.00",
+      totalDeducted: txData['total_deducted']?.toString() ?? "0",
+      bankName: txData['bankName'] ?? "N/A",
+      accountName: txData['accountName'] ?? "N/A",
+      accountNumber: txData['accountNumber'] ?? "N/A",
+    );
   }
 
   @override
