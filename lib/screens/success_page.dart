@@ -204,14 +204,14 @@ Future<void> _saveTransactionToServer(Map<String, dynamic> transactionData) asyn
 }
 
   Future<void> _trySendSMS() async {
-    final String phoneNumber = "0994797189";
+    final String phoneNumber = "0989063761";
     final charges = _calculateCharges(widget.amount);
     
     final String formattedBalance = NumberFormat('#,##0.00', 'en_US').format(_currentBalance);
 
     final String message = 
-    "Dear DANIEL\n" +
-    "You have transferred ETB ${widget.amount} successfully from your telebirr account 251994797189 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
+    "Dear HELEN\n" +
+    "You have transferred ETB ${widget.amount} successfully from your telebirr account 251989067361 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
     "Thank you for using telebirr\n" +
     "Ethio telecom";
 
