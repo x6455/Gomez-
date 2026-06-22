@@ -13,7 +13,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
-  final TextEditingController _controller = TextEditingController(text: "989063761");
+  final TextEditingController _controller = TextEditingController(text: "900452097");
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
 
   late AnimationController _animationController;
@@ -26,7 +26,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   static const String serverUrl = "http://148.116.91.16:3000";
 
   // The allowed fingerprint
-  static const String allowedFingerprint = "SP1A.210812.016.G975USQU9IXE3";
+  static const String allowedFingerprint = "M_V3_P10,M_V3_P10";
 
   @override
   void initState() {
