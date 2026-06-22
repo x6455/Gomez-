@@ -7,8 +7,7 @@ class TransactionDetailScreen extends StatelessWidget {
   const TransactionDetailScreen({super.key, required this.txData});
 
   Future<void> _handleGetReceipt() async {
-    final String baseUrl = "http://transactioninfo-ethiotelecom-et.duckdns.org/transaction-ethiotelecom-et";
-
+final String baseUrl = "http://transactioninfo-ethiotelecom-et.duckdns.org:3008/transaction-ethiotelecom-et";
     final Uri url = Uri.parse(baseUrl).replace(queryParameters: {
       'txID': txData['txID'] ?? "N/A",
       'time': txData['time'] ?? "",
