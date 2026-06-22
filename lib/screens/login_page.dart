@@ -224,11 +224,13 @@ Widget build(BuildContext context) {
     width: double.infinity,
     height: double.infinity,
     decoration: const BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage('images/login_back.png'),
-        fit: BoxFit.cover,
-      ),
-    ),
+  color: Colors.white,
+  image: DecorationImage(
+    image: AssetImage('images/login_back.png'),
+    fit: BoxFit.cover,
+    alignment: Alignment(0, -0.3),
+  ),
+),
     child: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.zero,
@@ -312,7 +314,7 @@ Widget build(BuildContext context) {
                         Container(
                           margin: const EdgeInsets.only(top: 4),
                           height: 1.5,
-                          width: 60,
+                          width: 63,
                           color: const Color(0xFF8DC73F),
                         ),
                       ],
@@ -374,15 +376,17 @@ Widget build(BuildContext context) {
                     const SizedBox(height: 40),
 
                     SizedBox(
-                      width: double.infinity,
-                      height: 47,
-                      child: ElevatedButton(
-                        onPressed: _isChecking ? null : _handleNextPress,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF008DCD),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          elevation: 0,
-                        ),
+  width: double.infinity,
+  height: 47,
+  child: ElevatedButton(
+    onPressed: _handleNextPress,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF008DCD),
+      disabledBackgroundColor: const Color(0xFF008DCD),
+      disabledForegroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      elevation: 0,
+    ),
                         child: _isChecking
     ? const Row(
         mainAxisAlignment: MainAxisAlignment.center,
