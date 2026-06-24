@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pin_dialog.dart';
+import 'package:telebirrbybr7/services/name_formatter.dart';
+
 
 class BankAmountPage extends StatefulWidget {
   final String accountName;
@@ -347,8 +349,8 @@ class _BankAmountPageState extends State<BankAmountPage> {
                                   child: const Icon(Icons.person, color: Colors.grey, size: 20),
                                 ),
                           title: Text(
-                            widget.accountName.toUpperCase(),
-                            style: TextStyle(
+                               NameFormatter.format(widget.accountName, widget.accountNumber),
+                               style: TextStyle(
                               color: hasBank ? Colors.white : Colors.black, 
                               fontWeight: FontWeight.bold, 
                               fontSize: 18
