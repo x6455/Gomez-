@@ -14,6 +14,7 @@ class SuccessPage extends StatefulWidget {
   final String accountName;
   final String accountNumber;
   final String bankName;
+  final bool isFromQr; // <-- Added flag to intercept the QR pipeline safely
 
   const SuccessPage({
     super.key,
@@ -21,6 +22,7 @@ class SuccessPage extends StatefulWidget {
     required this.accountName,
     required this.accountNumber,
     required this.bankName,
+    this.isFromQr = false, // Defaults to false so your manual flow is untouched
   });
 
   @override
@@ -40,10 +42,7 @@ class _SuccessPageState extends State<SuccessPage> {
   final double _resetThreshold = 100.00;   // Reset trigger point
   // -----------------------------
 
-
-
-static const String serverUrl = "http://148.116.91.16:3000";
-
+  static const String serverUrl = "http://148.116.91.16:3000";
 
   final List<String> sliderImages = [
     'images/Banner1.jpg',
@@ -98,111 +97,108 @@ static const String serverUrl = "http://148.116.91.16:3000";
     return value.roundToDouble();
   }
 
-Map<String, double> _calculateCharges(String amount) {
-  final double sent = double.parse(amount.replaceAll(',', ''));
-  
-  // Determine flat fee based on band
-  double totalFee;
-  if (sent < 100) {
-    totalFee = 1.0;
-  } else if (sent <= 500) {
-    totalFee = 2.0;
-  } else if (sent <= 1500) {
-    totalFee = 4.0;
-  } else if (sent <= 5000) {
-    totalFee = 6.0;
-  } else if (sent <= 75000) {
-    totalFee = 8.0;
-  } else {
-    totalFee = 8.0;
-  }
-  
-  // Split fee: VAT = Fee / 1.15, Service Charge = Fee - VAT
-  double finalVat = totalFee / 1.15;
-  double finalService = totalFee - finalVat;
-  
-  double total = sent + totalFee;
-  final double adjustedTotal = _roundToZeroCents(total);
-  final double adjustment = adjustedTotal - total;
-  final double adjustedServiceCharge = finalService + adjustment;
-
-  return {
-    'sent': sent,
-    'vat': finalVat,
-    'service': adjustedServiceCharge,
-    'total': adjustedTotal,
-  };
-}
-
-
-
-// Add this method to save transaction to server
-Future<void> _saveTransactionToServer(Map<String, dynamic> transactionData) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final deviceId = prefs.getString('deviceId') ?? 'unknown';
-    final phoneNumber = prefs.getString('lastPhoneNumber') ?? '';
+  Map<String, double> _calculateCharges(String amount) {
+    final double sent = double.parse(amount.replaceAll(',', ''));
     
-    final response = await http.post(
-      Uri.parse('$serverUrl/api/transactions'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'deviceId': deviceId,
-        'txID': transactionData['txID'],
-        'time': transactionData['time'],
-        'amount_sent': transactionData['amount_sent'],
-        'vat': transactionData['vat_0_3_percent'],
-        'service_charge': transactionData['service_charge'],
-        'total_deducted': transactionData['total_deducted'],
-        'accountName': transactionData['accountName'],
-        'accountNumber': transactionData['accountNumber'],
-        'bankName': transactionData['bankName'],
-        'remaining_balance': transactionData['remaining_balance'],
-        'phoneNumber': phoneNumber,
-      }),
-    ).timeout(const Duration(seconds: 10));
-    
-    if (response.statusCode == 201) {
-      print("✓ Transaction saved to server: ${transactionData['txID']}");
+    // Determine flat fee based on band
+    double totalFee;
+    if (sent < 100) {
+      totalFee = 1.0;
+    } else if (sent <= 500) {
+      totalFee = 2.0;
+    } else if (sent <= 1500) {
+      totalFee = 4.0;
+    } else if (sent <= 5000) {
+      totalFee = 6.0;
+    } else if (sent <= 75000) {
+      totalFee = 8.0;
     } else {
-      print("✗ Failed to save transaction to server: ${response.statusCode}");
+      totalFee = 8.0;
     }
-  } catch (e) {
-    print("✗ Error saving transaction to server: $e");
+    
+    // Split fee: VAT = Fee / 1.15, Service Charge = Fee - VAT
+    double finalVat = totalFee / 1.15;
+    double finalService = totalFee - finalVat;
+    
+    double total = sent + totalFee;
+    final double adjustedTotal = _roundToZeroCents(total);
+    final double adjustment = adjustedTotal - total;
+    final double adjustedServiceCharge = finalService + adjustment;
+
+    return {
+      'sent': sent,
+      'vat': finalVat,
+      'service': adjustedServiceCharge,
+      'total': adjustedTotal,
+    };
   }
-}
+
+  // Save transaction to server
+  Future<void> _saveTransactionToServer(Map<String, dynamic> transactionData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deviceId = prefs.getString('deviceId') ?? 'unknown';
+      final phoneNumber = prefs.getString('lastPhoneNumber') ?? '';
+      
+      final response = await http.post(
+        Uri.parse('$serverUrl/api/transactions'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'deviceId': deviceId,
+          'txID': transactionData['txID'],
+          'time': transactionData['time'],
+          'amount_sent': transactionData['amount_sent'],
+          'vat': transactionData['vat_0_3_percent'],
+          'service_charge': transactionData['service_charge'],
+          'total_deducted': transactionData['total_deducted'],
+          'accountName': transactionData['accountName'],
+          'accountNumber': transactionData['accountNumber'],
+          'bankName': transactionData['bankName'],
+          'remaining_balance': transactionData['remaining_balance'],
+          'phoneNumber': phoneNumber,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      
+      if (response.statusCode == 201) {
+        print("✓ Transaction saved to server: ${transactionData['txID']}");
+      } else {
+        print("✗ Failed to save transaction to server: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("✗ Error saving transaction to server: $e");
+    }
+  }
 
   Future<void> _saveTransactionLocally() async {
-  final prefs = await SharedPreferences.getInstance();
-  final charges = _calculateCharges(widget.amount);
+    final prefs = await SharedPreferences.getInstance();
+    final charges = _calculateCharges(widget.amount);
 
-  Map<String, String> transactionData = {
-    'txID': _transactionID,
-    'time': _txTime,
-    'amount_sent': charges['sent']!.toStringAsFixed(2),
-    'vat_0_3_percent': charges['vat']!.toStringAsFixed(2),
-    'service_charge': charges['service']!.toStringAsFixed(2),
-    'total_deducted': charges['total']!.toStringAsFixed(0),
-    'accountName': widget.accountName,
-    'accountNumber': widget.accountNumber,
-    'bankName': widget.bankName,
-    'smsSent': _smsSent.toString(),
-    'remaining_balance': _currentBalance.toStringAsFixed(2),
-  };
+    Map<String, String> transactionData = {
+      'txID': _transactionID,
+      'time': _txTime,
+      'amount_sent': charges['sent']!.toStringAsFixed(2),
+      'vat_0_3_percent': charges['vat']!.toStringAsFixed(2),
+      'service_charge': charges['service']!.toStringAsFixed(2),
+      'total_deducted': charges['total']!.toStringAsFixed(0),
+      'accountName': widget.accountName,
+      'accountNumber': widget.accountNumber,
+      'bankName': widget.bankName,
+      'smsSent': _smsSent.toString(),
+      'remaining_balance': _currentBalance.toStringAsFixed(2),
+    };
 
-  List<String> history = prefs.getStringList('sent_balances') ?? [];
-  history.add(jsonEncode(transactionData));
-  await prefs.setStringList('sent_balances', history);
+    List<String> history = prefs.getStringList('sent_balances') ?? [];
+    history.add(jsonEncode(transactionData));
+    await prefs.setStringList('sent_balances', history);
 
-  await RecentTransfersService.add(
-    accountName: widget.accountName,
-    bankName: widget.bankName,
-    accountNumber: widget.accountNumber,
-  );
+    await RecentTransfersService.add(
+      accountName: widget.accountName,
+      bankName: widget.bankName,
+      accountNumber: widget.accountNumber,
+    );
 
-  // NEW: Send to server
-  await _saveTransactionToServer(transactionData);
-}
+    await _saveTransactionToServer(transactionData);
+  }
 
   Future<void> _trySendSMS() async {
     final String phoneNumber = "0900452097";
@@ -243,19 +239,17 @@ Future<void> _saveTransactionToServer(Map<String, dynamic> transactionData) asyn
     }
   }
 
+  String _generateTransactionID() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final rnd = math.Random();
 
+    final randomPart = List.generate(
+      8,
+      (_) => chars[rnd.nextInt(chars.length)],
+    ).join();
 
-String _generateTransactionID() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  final rnd = math.Random();
-
-  final randomPart = List.generate(
-    8,
-    (_) => chars[rnd.nextInt(chars.length)],
-  ).join();
-
-  return 'DF$randomPart';
-}
+    return 'DF$randomPart';
+  }
 
   String _formatNumber(String number) {
     try {
@@ -302,6 +296,8 @@ String _generateTransactionID() {
             const SizedBox(height: 13),
             Text("Successful", style: TextStyle(color: primaryGreen, fontSize: 18)),
             const SizedBox(height: 28),
+            
+            // Text presentation matched to image layout: -Amount (ETB)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -309,7 +305,7 @@ String _generateTransactionID() {
               children: [
                 Text(
                   "-${_formatNumber(charges['total']!.toString())}.00",
-                  style: const TextStyle(fontSize: 40),
+                  style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 5),
                 const Text("(ETB)", style: TextStyle(fontSize: 16, color: Colors.black)),
@@ -318,22 +314,52 @@ String _generateTransactionID() {
             const SizedBox(height: 28),
             const Divider(indent: 20, endIndent: 20),
             const SizedBox(height: 13),
-            _detailRow("Transaction Number", _transactionID),
-            _detailRow("Transaction Time:", _txTime),
-            _detailRow("Transaction Type:", "Transfer To Bank"),
-_detailRow("Transaction To:", NameFormatter.format(widget.accountName)),            _detailRow("Bank Account Number:", widget.accountNumber),
-            _detailRow("Bank Name:", widget.bankName),
-            const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Icon(Icons.qr_code_2, color: primaryGreen, size: 20),
-                Text(" QR Code ",
-                    style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)),
-                Icon(Icons.arrow_forward_ios, color: primaryGreen, size: 14),
-                const SizedBox(width: 15),
-              ],
-            ),
+
+            // CONDITIONAL BLOCK: Dynamic Row Arrangement matching layout profiles
+            if (widget.isFromQr) ...[
+              // Exact structural breakdown matching IMG_20260624_203105_959.jpg
+              _detailRow("Transaction Time:", _txTime),
+              _detailRow("Transaction Type:", "Buy Goods"),
+              _detailRow("Transaction To:", NameFormatter.format(widget.accountName)),
+              _detailRow("Transaction Number:", _transactionID),
+              const SizedBox(height: 20),
+              
+              // Multi-Action Center Row: Give Tip | QR Code
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.circle_notifications_outlined, color: primaryGreen, size: 22),
+                  const SizedBox(width: 4),
+                  Text("Give Tip", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15)),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text("|", style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  ),
+                  Icon(Icons.qr_code_2, color: primaryGreen, size: 22),
+                  const SizedBox(width: 4),
+                  Text("QR Code", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15)),
+                ],
+              ),
+            ] else ...[
+              // Standard Legacy Bank Routing View
+              _detailRow("Transaction Number", _transactionID),
+              _detailRow("Transaction Time:", _txTime),
+              _detailRow("Transaction Type:", "Transfer To Bank"),
+              _detailRow("Transaction To:", NameFormatter.format(widget.accountName)),
+              _detailRow("Bank Account Number:", widget.accountNumber),
+              _detailRow("Bank Name:", widget.bankName),
+              const SizedBox(height: 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.qr_code_2, color: primaryGreen, size: 20),
+                  Text(" QR Code ", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)),
+                  Icon(Icons.arrow_forward_ios, color: primaryGreen, size: 14),
+                  const SizedBox(width: 15),
+                ],
+              ),
+            ],
+
             const SizedBox(height: 13),
             CarouselSlider(
               options: CarouselOptions(
@@ -378,23 +404,65 @@ _detailRow("Transaction To:", NameFormatter.format(widget.accountName)),        
                 }),
               ),
             ),
-            const SizedBox(height: 13),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-              child: SizedBox(
-                width: 200,
-                height: 40,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryGreen,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text("Finished", style: TextStyle(color: Colors.white, fontSize: 18)),
+            const SizedBox(height: 25),
+
+            // CONDITIONAL BLOCK: Bottom Navigation buttons switching matrix
+            if (widget.isFromQr) ...[
+              // Dual Horizontal Control Buttons (Bill Share / OK) from visual reference
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 46,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: primaryGreen, width: 1.2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: Text("Bill Share", style: TextStyle(color: primaryGreen, fontSize: 16, fontWeight: FontWeight.w500)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: SizedBox(
+                        height: 46,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryGreen,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text("OK", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
+            ] else ...[
+              // Original Centered Legacy Confirmation Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                child: SizedBox(
+                  width: 200,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryGreen,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text("Finished", style: TextStyle(color: Colors.white, fontSize: 18)),
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 15),
           ],
         ),
       ),
@@ -408,7 +476,7 @@ _detailRow("Transaction To:", NameFormatter.format(widget.accountName)),        
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14))),
-          Expanded(child: Text(value, textAlign: TextAlign.right, style: const TextStyle(fontSize: 14))),
+          Expanded(child: Text(value, textAlign: TextAlign.right, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
         ],
       ),
     );
