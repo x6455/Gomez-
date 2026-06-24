@@ -12,6 +12,7 @@ class PinDialog {
     required String accountName,
     required String accountNumber,
     required String bankName,
+    bool isFromQr = false, // <-- Added parameter to accept the context route safely
   }) {
     String pin = "";
 
@@ -37,31 +38,30 @@ class PinDialog {
             if (pin.length == 6) {
               // Show Loader Box
               // A. Show Loading Dialog with GIF
-showDialog(
-  context: context,
-  barrierDismissible: false,
-  builder: (context) => Center(
-    child: Container(
-      width: 100, // The size of the white background card
-      height: 100,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Center(
-        child: SizedBox(
-          width: 50,  // EXACT GIF WIDTH
-          height: 50, // EXACT GIF HEIGHT
-          child: Image.asset(
-            'images/loading.gif', 
-            fit: BoxFit.contain,
-          ),
-        ),
-      ),
-    ),
-  ),
-);
-
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Center(
+                  child: Container(
+                    width: 100, // The size of the white background card
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: Center(
+                      child: SizedBox(
+                        width: 50,  // EXACT GIF WIDTH
+                        height: 50, // EXACT GIF HEIGHT
+                        child: Image.asset(
+                          'images/loading.gif', 
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
 
               // After 2 seconds, navigate to Processing Page
               Future.delayed(const Duration(seconds: 2), () {
@@ -77,6 +77,7 @@ showDialog(
                         accountName: accountName,
                         accountNumber: accountNumber,
                         bankName: bankName,
+                        isFromQr: isFromQr, // <-- Forwarding flag directly into processing step
                       ),
                     ),
                   );
