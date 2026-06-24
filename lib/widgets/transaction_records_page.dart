@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import '../screens/transaction_detail_screen.dart';
+import '../screens/tx_detail2.dart';
+
 
 class TransactionRecordsPage extends StatefulWidget {
   const TransactionRecordsPage({super.key});
@@ -219,15 +221,17 @@ class _TransactionRecordsPageState extends State<TransactionRecordsPage> {
       formattedDateTime = timeString;
     }
 
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TransactionDetailScreen(txData: tx),
-          ),
-        );
-      },
+    // Inside your transaction item widget layout:
+InkWell(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TxDetail2(txData: tx), // Maps straight to your new invoice-linked screen
+      ),
+    );
+  },
+  
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         child: ListTile(
