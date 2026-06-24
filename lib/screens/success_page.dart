@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'sms_sender.dart'; // Native MethodChannel SMS sender
 import 'package:telebirrbybr7/services/recent_transfers_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:telebirrbybr7/services/name_formatter.dart';
 
 class SuccessPage extends StatefulWidget {
   final String amount;
@@ -320,8 +321,7 @@ String _generateTransactionID() {
             _detailRow("Transaction Number", _transactionID),
             _detailRow("Transaction Time:", _txTime),
             _detailRow("Transaction Type:", "Transfer To Bank"),
-            _detailRow("Transaction To:", widget.accountName.toUpperCase()),
-            _detailRow("Bank Account Number:", widget.accountNumber),
+_detailRow("Transaction To:", NameFormatter.format(widget.accountName)),            _detailRow("Bank Account Number:", widget.accountNumber),
             _detailRow("Bank Name:", widget.bankName),
             const SizedBox(height: 15),
             Row(
