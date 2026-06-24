@@ -9,6 +9,7 @@ import 'package:telebirrbybr7/widgets/grid_content.dart';
 import 'package:telebirrbybr7/widgets/notification_area.dart';
 import 'package:telebirrbybr7/widgets/transaction%20detail.dart';
 import 'package:telebirrbybr7/widgets/user_introduction.dart';
+import 'package:telebirrbybr7/widgets/transaction_records_page.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -189,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const Padding(
                       padding: EdgeInsets.only(bottom: 15.0),
-                      child: TransactionDetails(),
+                      child: TransactionRecordsPage(),
                     ),
                     GridContent(
                       gridIcon: bottomGridIcon,
