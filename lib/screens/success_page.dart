@@ -8,6 +8,8 @@ import 'sms_sender.dart'; // Native MethodChannel SMS sender
 import 'package:telebirrbybr7/services/recent_transfers_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:telebirrbybr7/services/name_formatter.dart';
+import 'package:telebirrbybr7/screens/main_screen.dart'; // Make sure this path matches your directory setup
+
 
 class SuccessPage extends StatefulWidget {
   final String amount;
@@ -433,19 +435,27 @@ class _SuccessPageState extends State<SuccessPage> {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: SizedBox(
-                        height: 46,
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryGreen,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: const Text("OK", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ),
+  child: SizedBox(
+    height: 46,
+    child: ElevatedButton(
+      onPressed: () {
+        // Clears the history stack and opens a fresh MainScreen starting at the Home tab
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false,
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryGreen,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: const Text("OK", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+    ),
+  ),
+),
+
                   ],
                 ),
               ),
