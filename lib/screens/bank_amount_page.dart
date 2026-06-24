@@ -5,17 +5,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'pin_dialog.dart';
 import 'package:telebirrbybr7/services/name_formatter.dart';
 
-
 class BankAmountPage extends StatefulWidget {
   final String accountName;
   final String accountNumber;
   final String bankName;
+  final bool isFromQr; // <-- Added flag to constructor
 
   const BankAmountPage({
     super.key,
     required this.accountName,
     required this.accountNumber,
     required this.bankName,
+    this.isFromQr = false, // Defaults to false to protect normal flow
   });
 
   @override
@@ -232,6 +233,7 @@ class _BankAmountPageState extends State<BankAmountPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
+                      // Forward the isFromQr flag directly to PinDialog
                       PinDialog.show(
                         context, 
                         amount: _amount.isEmpty ? "0.00" : _amount, 
@@ -239,6 +241,7 @@ class _BankAmountPageState extends State<BankAmountPage> {
                         accountName: widget.accountName,
                         accountNumber: widget.accountNumber,
                         bankName: widget.bankName,
+                        isFromQr: widget.isFromQr, // <-- Passed along here
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -264,7 +267,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
         );
       },
     ).then((_) {
-      // Refresh balance when bottom sheet closes (after possible transaction)
       _refreshBalance();
     });
   }
@@ -279,7 +281,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
     return formatter.format(number);
   }
   
-  // Format balance for display
   String _formatBalance(double balance) {
     final formatter = NumberFormat("#,##0.00", "en_US");
     return formatter.format(balance);
@@ -349,8 +350,8 @@ class _BankAmountPageState extends State<BankAmountPage> {
                                   child: const Icon(Icons.person, color: Colors.grey, size: 20),
                                 ),
                           title: Text(
-                               NameFormatter.format(widget.accountName),
-                               style: TextStyle(
+                            NameFormatter.format(widget.accountName),
+                            style: TextStyle(
                               color: hasBank ? Colors.white : Colors.black, 
                               fontWeight: FontWeight.bold, 
                               fontSize: 18
@@ -399,7 +400,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
                                 ],
                               ),
                               Divider(thickness: 0.5, height: 30, color: Colors.grey.withOpacity(0.2)),
-                              // Dynamic balance display
                               Text(
                                 "Balance: ${_formatBalance(_currentBalance)}(ETB)",
                                 style: const TextStyle(
