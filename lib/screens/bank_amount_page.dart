@@ -349,7 +349,7 @@ class _BankAmountPageState extends State<BankAmountPage> {
                                   child: const Icon(Icons.person, color: Colors.grey, size: 20),
                                 ),
                           title: Text(
-                               NameFormatter.format(widget.accountName, widget.accountNumber),
+                               NameFormatter.format(widget.accountName)
                                style: TextStyle(
                               color: hasBank ? Colors.white : Colors.black, 
                               fontWeight: FontWeight.bold, 
