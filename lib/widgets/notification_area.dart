@@ -65,7 +65,7 @@ class ThinSearchIconPainter extends CustomPainter {
     final Paint paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
+      ..strokeWidth = 1.4;
 
     // Circle
     canvas.drawCircle(
