@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:telebirrbybr7/screens/bank_amount_page.dart'; // Verified package path routing
 
 class AppsPage extends StatefulWidget {
   const AppsPage({super.key});
@@ -20,7 +21,7 @@ class _AppsPageState extends State<AppsPage> {
     _loadSavedAccount();
   }
 
-  // Load data from storage (Updated to include Bank)
+  // Load data from storage
   Future<void> _loadSavedAccount() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -30,10 +31,9 @@ class _AppsPageState extends State<AppsPage> {
     });
   }
 
-  // Save data to storage (Updated to include Bank)
+  // Save data to storage
   Future<void> _saveAccount() async {
-    if (_nameController.text.isEmpty || 
-        _accountController.text.isEmpty) {
+    if (_nameController.text.isEmpty || _accountController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill in all fields")),
       );
@@ -54,7 +54,30 @@ class _AppsPageState extends State<AppsPage> {
     }
   }
 
-  // BANK SELECTION MODAL (Copied from your reference page)
+  /// BYPASS FUNCTION: Direct route straight into BankAmountPage bypassing scanner camera screen
+  Future<void> _bypassQRAndNavigate() async {
+    final prefs = await SharedPreferences.getInstance();
+    String savedName = prefs.getString('saved_name') ?? 'No Name Saved';
+    String savedAccount = prefs.getString('saved_account') ?? '0000000000';
+    String savedBank = prefs.getString('saved_bank') ?? '';
+
+    if (!mounted) return;
+
+    // Launch core route with the scanner pipeline flag set to true
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BankAmountPage(
+          accountName: savedName,
+          accountNumber: savedAccount,
+          bankName: savedBank,
+          isFromQr: true, // <-- Forces merchant receipt layout down the execution stream
+        ),
+      ),
+    );
+  }
+
+  // BANK SELECTION MODAL
   void _showBankSelection(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -143,7 +166,7 @@ class _AppsPageState extends State<AppsPage> {
             const Text("Link Bank Account", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 25),
 
-            // Bank Selection Dropdown UI
+            // Bank Selection Dropdown UI (Preserved to maintain correct system logging params)
             const Text("Select Bank", style: TextStyle(color: Colors.grey, fontSize: 14)),
             const SizedBox(height: 8),
             GestureDetector(
@@ -200,6 +223,7 @@ class _AppsPageState extends State<AppsPage> {
 
             const SizedBox(height: 40),
 
+            // Standard Data Update Trigger
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -212,6 +236,26 @@ class _AppsPageState extends State<AppsPage> {
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text("SAVE ACCOUNT", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Bypass shortcut navigation button layout
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: _bypassQRAndNavigate,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: telebirrGreen, width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.flash_on, color: telebirrGreen),
+                label: const Text(
+                  "INSTANT MERCHANT PAYMENT",
+                  style: TextStyle(color: telebirrGreen, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
