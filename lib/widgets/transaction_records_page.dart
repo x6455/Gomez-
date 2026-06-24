@@ -222,7 +222,7 @@ class _TransactionRecordsPageState extends State<TransactionRecordsPage> {
     }
 
     // Inside your transaction item widget layout:
-InkWell(
+return InkWell(
   onTap: () {
     Navigator.push(
       context,
