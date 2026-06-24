@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:intl/intl.dart'; // Useful for formatting the current date
-import '../screens/transaction_detail_screen.dart';
 import 'package:intl/intl.dart';
+import '../screens/transaction_detail_screen.dart';
 
 class TransactionRecordsPage extends StatefulWidget {
   const TransactionRecordsPage({super.key});
@@ -30,7 +29,7 @@ class _TransactionRecordsPageState extends State<TransactionRecordsPage> {
       _history = historyStrings
           .map((item) => jsonDecode(item) as Map<String, dynamic>)
           .toList()
-          .reversed // Show newest first
+          .reversed // Newest items show up at the top
           .toList();
       _isLoading = false;
     });
@@ -38,172 +37,246 @@ class _TransactionRecordsPageState extends State<TransactionRecordsPage> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF0089CF);
-    
-    // Get current date for the header
-    final String todayDate = DateFormat('yyyy-dd').format(DateTime.now());
+    const Color telebirrGreen = Color(0xFF8DC73F);
+    const Color canvasGray = Color(0xFFF5F5F5);
+
+    // Dynamically look up current month name (e.g., "June")
+    final String currentMonthName = DateFormat('MMMM').format(DateTime.now());
 
     return Scaffold(
-      // 1. Page background set to white
-      backgroundColor: Colors.white,
+      backgroundColor: canvasGray,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: canvasGray,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Transaction Records', 
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+        titleSpacing: 0,
+        title: const Text(
+          'Transaction History', 
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 18),
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.more_horiz, color: Colors.black), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.cancel_outlined, color: Colors.black), onPressed: () {}),
+          // Authentic Mini-Program top right control capsule stack
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade300, width: 0.8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.more_horiz, color: Colors.black, size: 22),
+                const SizedBox(width: 10),
+                Container(width: 1, height: 14, color: Colors.grey.shade300),
+                const SizedBox(width: 10),
+                const Icon(Icons.radio_button_checked, color: Colors.black, size: 18),
+              ],
+            ),
+          )
         ],
       ),
       body: Column(
         children: [
-          // Toggle Buttons Row
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          // 1. Filter Option Pill Stack Layout
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                Expanded(child: _buildToggleButton("Main Account Transaction", true, primaryBlue)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildToggleButton("Reward Transaction", false, primaryBlue)),
+                _buildCapsuleTab("Main", true, telebirrGreen),
+                const SizedBox(width: 10),
+                _buildCapsuleTab("Reward", false, telebirrGreen),
+                const Spacer(),
+                Icon(Icons.file_download_outlined, color: Colors.grey.shade600, size: 24),
+                const SizedBox(width: 14),
+                Icon(Icons.tune, color: Colors.grey.shade600, size: 22),
               ],
             ),
           ),
           
-          // Summary Row
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          // 2. Metrics Summary Panel
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: telebirrGreen,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Pay: -21263.90  Income: 21174.00  Total: -89.90",
-                    style: TextStyle(fontSize: 12, color: Colors.black87)),
-                const Spacer(),
-                Icon(Icons.calendar_today_outlined, color: Colors.orange.shade300, size: 25),
+                _buildSummaryColumn("Pay (ETB)", "-12052.00"),
+                _buildSummaryColumn("Income (ETB)", "12052.00"),
+                _buildSummaryColumn("Total (ETB)", "0.00"),
               ],
             ),
           ),
 
-          // 2. Single Date Header at the Top
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                todayDate,
-                style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black, fontSize: 14),
-              ),
-            ),
-          ),
+          const SizedBox(height: 10),
 
-          // Transaction List with Alternating Colors
+          // 3. Main Transaction List Container Card Layout
           Expanded(
-            child: _isLoading 
-              ? const Center(child: CircularProgressIndicator())
-              : _history.isEmpty 
-                ? const Center(child: Text("No records found"))
-                : ListView.builder(
-                    itemCount: _history.length,
-                    itemBuilder: (context, index) {
-                      final tx = _history[index];
-                      // 3. Logic for Alternating Colors (Zebra Striping)
-                      // index 0 is white, index 1 is light gray, index 2 is white...
-                      final Color bgColor = (index % 2 == 0) 
-                          ? Colors.white 
-                          : const Color(0xFFFBFBFB); // Very subtle gray
-
-                      return _buildTransactionItem(tx, bgColor);
-                    },
-                  ),
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: telebirrGreen))
+                : _history.isEmpty 
+                  ? const Center(child: Text("No records found", style: TextStyle(color: Colors.grey)))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left-aligned dynamic Month Header Row
+                        Padding(
+                          padding: const EdgeInsets.only(left: 18, top: 16, bottom: 4),
+                          child: Text(
+                            currentMonthName,
+                            style: const TextStyle(
+                              fontSize: 15, 
+                              fontWeight: FontWeight.w700, 
+                              color: Colors.black
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.separated(
+                            padding: EdgeInsets.zero,
+                            itemCount: _history.length,
+                            separatorBuilder: (context, index) => const Divider(
+                              height: 1, 
+                              color: Color(0xFFF2F2F2), 
+                              indent: 72, 
+                              endIndent: 16
+                            ),
+                            itemBuilder: (context, index) {
+                              return _buildTransactionItem(_history[index]);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildToggleButton(String text, bool isActive, Color color) {
+  Widget _buildCapsuleTab(String label, bool isSelected, Color activeColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
-        color: isActive ? color : Colors.white,
+        color: isSelected ? activeColor : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color),
       ),
       child: Text(
-        text,
-        textAlign: TextAlign.center,
+        label,
         style: TextStyle(
-          color: isActive ? Colors.white : color, 
-          fontSize: 16, 
-          fontWeight: FontWeight.normal, // Font property for the text
+          color: isSelected ? Colors.white : Colors.grey.shade600,
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
         ),
       ),
     );
   }
 
-  Widget _buildTransactionItem(Map<String, dynamic> tx, Color backgroundColor) {
-    final String amount = tx['amount_sent'] ?? "0.00";
-   final String timeString = tx['time'] ?? "";
-String formattedTime = timeString; // fallback if parsing fails
-
-try {
-  if (timeString.isNotEmpty) {
-    // Parse the string into DateTime
-    DateTime parsedTime = DateTime.parse(timeString);
-    // Format as HH:mm (hours and minutes only)
-    formattedTime = DateFormat('HH:mm').format(parsedTime);
+  Widget _buildSummaryColumn(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          value,
+          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
   }
-} catch (e) {
-  // Keep original string if parsing fails
-  formattedTime = timeString;
-}
 
-    return Container(
-      color: backgroundColor,
-      child: InkWell(
-        // This makes the row clickable and navigates to the detail screen
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TransactionDetailScreen(txData: tx),
+  Widget _buildTransactionItem(Map<String, dynamic> tx) {
+    final String amount = tx['amount_sent'] ?? "0.00";
+    final String timeString = tx['time'] ?? "";
+    String formattedDateTime = timeString;
+
+    try {
+      if (timeString.isNotEmpty) {
+        DateTime parsedTime = DateTime.parse(timeString);
+        // Formats to match mockup precision: dd-MM-yyyy HH:mm
+        formattedDateTime = DateFormat('dd-MM-yyyy HH:mm').format(parsedTime);
+      }
+    } catch (e) {
+      formattedDateTime = timeString;
+    }
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionDetailScreen(txData: tx),
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        child: ListTile(
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: Color(0xFF8DC73F), // Matching store green background token circular mask
+              shape: BoxShape.circle,
             ),
-          );
-        },
-        child: Column(
-          children: [
-            ListTile(
-  leading: Container(
-    width: 26, // Size of the circle
-    height: 26, // Size of the circle
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(
-        color: Color(0xFFFBBB47), // Border color
-        width: 2, // 3px border width
-      ),
-    ),
-    child: const Icon(
-      Icons.more_horiz,
-      color: Color(0xFFFBBB47),
-      size: 20, // Slightly smaller to fit inside the circle
-    ),
-  ),
-              title: const Text("Transfer Money", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,), ),
-              subtitle: Text(formattedTime, style: const TextStyle(fontSize: 13, color: Colors.grey)),
-              trailing: Text(
+            child: const Icon(
+              Icons.storefront_outlined,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+          title: const Text(
+            "Transfer Money", 
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400, color: Color(0xFF222222)), 
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              formattedDateTime, 
+              style: const TextStyle(fontSize: 12, color: Color(0xFFB0B0B0)),
+            ),
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
                 "-$amount",
                 style: const TextStyle(
-                    color: Color(0xFFFBBB47),
-                    fontWeight: FontWeight.normal,
-                    fontSize: 24),
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 2),
+              const Text(
+                "ETB",
+                style: TextStyle(
+                  color: Color(0xFFB0B0B0),
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
