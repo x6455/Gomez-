@@ -49,7 +49,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
     if (!mounted) return;
 
-    // 3. Proceed to BankAmountPage with the saved data
+    // 3. Proceed to BankAmountPage with the saved data and flag active
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -57,6 +57,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           accountName: savedName,
           accountNumber: savedAccount,
           bankName: savedBank,
+          isFromQr: true, // <-- Added parameter to trigger custom receipt flow
         ),
       ),
     );
@@ -187,7 +188,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   }
 }
 
-// Custom Painter to draw the white L-shaped corners
 class BracketPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -196,7 +196,7 @@ class BracketPainter extends CustomPainter {
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
 
-    const double l = 25; // Length of corner lines
+    const double l = 25;
 
     // Top Left
     canvas.drawLine(Offset.zero, const Offset(l, 0), paint);
