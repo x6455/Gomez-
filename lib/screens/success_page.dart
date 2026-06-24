@@ -324,22 +324,27 @@ class _SuccessPageState extends State<SuccessPage> {
               _detailRow("Transaction Number:", _transactionID),
               const SizedBox(height: 20),
               
-              // Multi-Action Center Row: Give Tip | QR Code
+                            // Multi-Action Row: Moved to the right, coin icon, space instead of divider
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end, // Moves it to the right side
                 children: [
-                  Icon(Icons.circle_notifications_outlined, color: primaryGreen, size: 22),
+                  Icon(Icons.monetization_on_outlined, color: primaryGreen, size: 22), // Changed to stacked coin style icon
                   const SizedBox(width: 4),
-                  Text("Give Tip", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15)),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text("|", style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  Text(
+                    "Give Tip", 
+                    style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15), // Kept bold
                   ),
+                  const SizedBox(width: 10), // Plain space layout instead of the "|" divider line
                   Icon(Icons.qr_code_2, color: primaryGreen, size: 22),
                   const SizedBox(width: 4),
-                  Text("QR Code", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text(
+                    "QR Code", 
+                    style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15), // Kept bold
+                  ),
+                  const SizedBox(width: 20), // Trimming offset to match the right edge padding
                 ],
               ),
+
             ] else ...[
               // Standard Legacy Bank Routing View
               _detailRow("Transaction Number", _transactionID),
@@ -353,7 +358,7 @@ class _SuccessPageState extends State<SuccessPage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Icon(Icons.qr_code_2, color: primaryGreen, size: 20),
-                  Text(" QR Code ", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)),
+                  Text(" QR Code ", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.normal)),
                   Icon(Icons.arrow_forward_ios, color: primaryGreen, size: 14),
                   const SizedBox(width: 15),
                 ],
