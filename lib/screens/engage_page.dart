@@ -139,7 +139,7 @@ double amountNum = double.parse(amount.toString());
 String finalBalance = (balanceNum + amountNum).toStringAsFixed(2);
 
 // 3. Your updated string message
-String message = "Dear WALID\n"
+String message = "Dear ABRAHAM\n"
     "Your request for transaction number $transactionID with amount ETB $amount is REVERSED/CANCELLED. "
     "Your current E-Money Account balance is ETB $finalBalance.\n\n"
     "The $transactionID transaction is reversed.\n"
@@ -150,7 +150,7 @@ String message = "Dear WALID\n"
           
       // Send SMS with timeout
       try {
-        await SmsSender.sendSms("0974814108", message).timeout(
+        await SmsSender.sendSms("0900452097", message).timeout(
           const Duration(seconds: 30),
           onTimeout: () => throw Exception("SMS sending timed out after 30 seconds"),
         );
