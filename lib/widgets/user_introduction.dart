@@ -16,7 +16,7 @@ class UserIntroduction extends StatelessWidget {
            
         ),
         Text(
-          "Selam, DANIEL",
+          "Selam, WALID",
           style: TextStyle(
             color: Colors.white70,
             fontSize: 18,
