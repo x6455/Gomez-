@@ -17,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> tabs = [
   const HomeScreen(),
-  const Center(
+  Center(
     child: Image.asset('images/payment.png'),
   ),
   const AppsPage(),
