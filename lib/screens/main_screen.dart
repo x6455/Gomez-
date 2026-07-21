@@ -25,18 +25,19 @@ class _MainScreenState extends State<MainScreen> {
   const Center(child: Text('Account')),
 ];
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: tabs[_currentIndex],
-      bottomNavigationBar: TelebirrBottomBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-        },
-      ),
-    );
-  }
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: tabs[_currentIndex],
+    bottomNavigationBar: _currentIndex == 1
+        ? null  // Hide on Payment tab
+        : TelebirrBottomBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() => _currentIndex = index);
+            },
+          ),
+  );
 }
 
 class TelebirrBottomBar extends StatelessWidget {
