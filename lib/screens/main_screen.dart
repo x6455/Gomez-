@@ -39,6 +39,7 @@ Widget build(BuildContext context) {
           ),
   );
 }
+}
 
 class TelebirrBottomBar extends StatelessWidget {
   final int currentIndex;
