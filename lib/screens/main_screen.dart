@@ -17,9 +17,16 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> tabs = [
   const HomeScreen(),
-  Center(
-    child: Image.asset('images/payment.png'),
-  ),
+  Stack(
+  children: [
+    Image.asset(
+      'images/payment.png',
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+    ),
+  ],
+),
   const AppsPage(),
   const EngagePage(),
   const Center(child: Text('Account')),
