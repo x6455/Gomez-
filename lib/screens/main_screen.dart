@@ -16,12 +16,14 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> tabs = [
-    const HomeScreen(),
-    const Center(child: Text('Payment')),
-    const AppsPage(),
-    const EngagePage(), 
-    const Center(child: Text('Account')),
-  ];
+  const HomeScreen(),
+  const Center(
+    child: Image.asset('images/payment.png'),
+  ),
+  const AppsPage(),
+  const EngagePage(),
+  const Center(child: Text('Account')),
+];
 
   @override
   Widget build(BuildContext context) {
