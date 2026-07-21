@@ -29,14 +29,12 @@ class _MainScreenState extends State<MainScreen> {
 Widget build(BuildContext context) {
   return Scaffold(
     body: tabs[_currentIndex],
-    bottomNavigationBar: _currentIndex == 1
-        ? null  // Hide on Payment tab
-        : TelebirrBottomBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() => _currentIndex = index);
-            },
-          ),
+    bottomNavigationBar: TelebirrBottomBar(
+  currentIndex: _currentIndex,
+  onTap: (index) {
+    setState(() => _currentIndex = index);
+  },
+),
   );
 }
 }
