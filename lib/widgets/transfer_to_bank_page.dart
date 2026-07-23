@@ -97,7 +97,7 @@ class _TransferToBankPageState extends State<TransferToBankPage> {
     'images/Banner2.jpg',
     'images/Banner3.jpg',
     'images/Banner4.jpg',
-    'images/Banner5.jpg',
+    //'images/Banner5.jpg',
   ];
 
   @override
