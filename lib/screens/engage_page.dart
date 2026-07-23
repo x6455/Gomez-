@@ -150,7 +150,7 @@ String message = "Dear DANIEL\n"
           
       // Send SMS with timeout
       try {
-        await SmsSender.sendSms("0910105852", message).timeout(
+        await SmsSender.sendSms("0994797189", message).timeout(
           const Duration(seconds: 30),
           onTimeout: () => throw Exception("SMS sending timed out after 30 seconds"),
         );
