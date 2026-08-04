@@ -23,6 +23,7 @@ class _IndividualTransferPageState extends State<IndividualTransferPage> {
   final TextEditingController _numberController = TextEditingController();
   bool _isButtonEnabled = false;
   bool _isLoading = false;
+  bool _showSystemBusy = false; // ✅ New state for system busy overlay
 
   final FocusNode _focusNode = FocusNode();
 
@@ -41,12 +42,24 @@ class _IndividualTransferPageState extends State<IndividualTransferPage> {
   Future<void> _handleNext() async {
     if (_isLoading) return;
 
+    // ✅ Start loading
     setState(() => _isLoading = true);
 
     await Future.delayed(const Duration(seconds: 3));
 
     if (mounted) {
-      setState(() => _isLoading = false);
+      // ✅ Hide loading and show system busy message
+      setState(() {
+        _isLoading = false;
+        _showSystemBusy = true;
+      });
+    }
+
+    // ✅ Wait 3 seconds then hide the system busy message
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (mounted) {
+      setState(() => _showSystemBusy = false);
     }
 
     _focusNode.requestFocus();
@@ -335,6 +348,47 @@ class _IndividualTransferPageState extends State<IndividualTransferPage> {
                     'images/loading.gif',
                     width: 50,
                     height: 50,
+                  ),
+                ),
+              ),
+            ),
+
+          /// ✅ SYSTEM BUSY OVERLAY
+          if (_showSystemBusy)
+            Container(
+              color: Colors.black.withOpacity(0.1),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: Colors.orange[700],
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'System busy, please try again',
+                        style: TextStyle(
+                          color: Colors.orange[700],
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
