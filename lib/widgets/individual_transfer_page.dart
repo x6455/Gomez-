@@ -376,14 +376,14 @@ class _IndividualTransferPageState extends State<IndividualTransferPage> {
                     children: [
                       Icon(
                         Icons.error_outline,
-                        color: Colors.orange[700],
+                        color: Colors.gray[700],
                         size: 24,
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'System busy, please try again later.',
                         style: TextStyle(
-                          color: Colors.black[700],
+                          color: Colors.gray[700],
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
