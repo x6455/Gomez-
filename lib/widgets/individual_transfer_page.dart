@@ -376,7 +376,7 @@ class _IndividualTransferPageState extends State<IndividualTransferPage> {
                     children: [
                       Icon(
                         Icons.error_outline,
-                        color: Colors.gray[700],
+                        color: Colors.grey[700],
                         size: 24,
                       ),
                       const SizedBox(width: 12),
