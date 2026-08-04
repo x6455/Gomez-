@@ -383,7 +383,7 @@ class _IndividualTransferPageState extends State<IndividualTransferPage> {
                       Text(
                         'System busy, please try again later.',
                         style: TextStyle(
-                          color: Colors.gray[700],
+                          color: Colors.grey[700],
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
