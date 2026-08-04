@@ -22,7 +22,9 @@ class _MainScreenState extends State<MainScreen> {
   ),
   const AppsPage(),
   const EngagePage(),
-  const Center(child: Text('Account')),
+  Center(
+    child: Image.asset('images/account.png'),
+  ),
 ];
 
 @override
