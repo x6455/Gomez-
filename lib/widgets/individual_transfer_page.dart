@@ -17,7 +17,7 @@ class _IndividualTransferPageState extends State<IndividualTransferPage> {
     'images/Banner2.jpg',
     'images/Banner3.jpg',
     'images/Banner4.jpg',
-    'images/Banner5.jpg',
+    //'images/Banner5.jpg',
   ];
 
   final TextEditingController _numberController = TextEditingController();
@@ -381,9 +381,9 @@ class _IndividualTransferPageState extends State<IndividualTransferPage> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'System busy, please try again',
+                        'System busy, please try again later.',
                         style: TextStyle(
-                          color: Colors.orange[700],
+                          color: Colors.black[700],
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
