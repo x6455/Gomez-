@@ -14,8 +14,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  bool _isLoading = false;
-  bool _showError = false;
   bool _unlocked = false;
   int _homeTapCount = 0;
   DateTime? _lastTapTime;
@@ -53,66 +51,79 @@ class _MainScreenState extends State<MainScreen> {
       setState(() => _currentIndex = index);
       
     } else {
-      setState(() {
-        _isLoading = true;
-        _showError = false;
-      });
+      _showLoadingDialog(context);
       
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _showError = true;
-          });
+          Navigator.pop(context); // Close loading dialog
+          _showErrorDialog(context);
         }
       });
     }
   }
 
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: Image.asset(
+                'images/loading.gif',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 60),
+              const SizedBox(height: 16),
+              const Text(
+                'System Busy. Please try again later.',
+                style: TextStyle(color: Colors.black87, fontSize: 18),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Auto dismiss after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        Navigator.pop(context);
+        setState(() => _currentIndex = 0);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          tabs[_currentIndex],
-          
-          if (_isLoading)
-            Container(
-              color: Colors.black54,
-              child: Center(
-                child: Image.asset('images/loading.gif'),
-              ),
-            ),
-          
-          if (_showError)
-            Container(
-              color: Colors.black54,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.white, size: 60),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'System Busy. Please try again later.',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _showError = false;
-                          _currentIndex = 0;
-                        });
-                      },
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
+      body: tabs[_currentIndex],
       bottomNavigationBar: TelebirrBottomBar(
         currentIndex: _currentIndex,
         onTap: _handleTabChange,
