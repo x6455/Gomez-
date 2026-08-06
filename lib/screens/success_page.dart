@@ -282,7 +282,7 @@ class _SuccessPageState extends State<SuccessPage> {
       (_) => chars[rnd.nextInt(chars.length)],
     ).join();
 
-    return 'DG$randomPart';
+    return 'DH$randomPart';
   }
 
   String _formatNumber(String number) {
