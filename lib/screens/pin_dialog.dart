@@ -12,7 +12,8 @@ class PinDialog {
     required String accountName,
     required String accountNumber,
     required String bankName,
-    bool isFromQr = false, // <-- Added parameter to accept the context route safely
+    bool isFromQr = false,
+    bool isTelebirrTransfer = false, // New parameter
   }) {
     String pin = "";
 
@@ -77,7 +78,8 @@ class PinDialog {
                         accountName: accountName,
                         accountNumber: accountNumber,
                         bankName: bankName,
-                        isFromQr: isFromQr, // <-- Forwarding flag directly into processing step
+                        isFromQr: isFromQr,
+                        isTelebirrTransfer: isTelebirrTransfer, // Pass along
                       ),
                     ),
                   );
