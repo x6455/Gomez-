@@ -17,11 +17,19 @@ class RecentTransfersService {
   }
 
   // Add new entry (no duplicates, max 10, newest on top)
+  // Only adds if it's a bank transfer (not QR or Telebirr)
   static Future<void> add({
     required String accountName,
     required String bankName,
     required String accountNumber,
+    bool isFromQr = false,
+    bool isTelebirrTransfer = false,
   }) async {
+    // Skip adding if it's QR or Telebirr transfer
+    if (isFromQr || isTelebirrTransfer) {
+      return; // Don't add to recent transfers
+    }
+    
     final prefs = await SharedPreferences.getInstance();
     List<Map<String, String>> entries = await load();
 
