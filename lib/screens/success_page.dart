@@ -378,7 +378,17 @@ class _SuccessPageState extends State<SuccessPage> {
               _detailRow("Transaction Type:", "Transfer Money"),
               _detailRow("Transaction To:", widget.accountName), // First name as-is
               _detailRow("Transaction Number:", _transactionID),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
+              Row(
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      Icon(Icons.qr_code_2, color: primaryGreen, size: 20),
+      Text(" QR Code ", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.normal)),
+      const SizedBox(width: 15),
+    ],
+  ),
+  
+  const SizedBox(height: 13),
             ] else if (widget.isFromQr) ...[
               // QR/MERCHANT PAYMENT LAYOUT (Existing)
               _detailRow("Transaction Time:", _txTime),
