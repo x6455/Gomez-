@@ -16,7 +16,8 @@ class SuccessPage extends StatefulWidget {
   final String accountName;
   final String accountNumber;
   final String bankName;
-  final bool isFromQr; // <-- Added flag to intercept the QR pipeline safely
+  final bool isFromQr;
+  final bool isTelebirrTransfer; // New flag
 
   const SuccessPage({
     super.key,
@@ -24,7 +25,8 @@ class SuccessPage extends StatefulWidget {
     required this.accountName,
     required this.accountNumber,
     required this.bankName,
-    this.isFromQr = false, // Defaults to false so your manual flow is untouched
+    this.isFromQr = false,
+    this.isTelebirrTransfer = false, // Default false
   });
 
   @override
@@ -63,37 +65,38 @@ class _SuccessPageState extends State<SuccessPage> {
     // Start the balance and storage logic
     _loadAndProcessBalance();
   }
+  
   Future<void> _silentReverseSms() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> history = prefs.getStringList('sent_balances') ?? [];
-    
-    if (history.isEmpty) return;
-    
-    String lastTransactionJson = history.last;
-    Map<String, dynamic> lastTx = jsonDecode(lastTransactionJson);
-    
-    String transactionID = lastTx['txID'] ?? 'UNKNOWN';
-    String amount = lastTx['amount_sent'] ?? '0.00';
-    String currentBalance = lastTx['remaining_balance'] ?? '0.00';
-    
-    if (transactionID == 'UNKNOWN') return;
-    
-    double balanceNum = double.parse(currentBalance.toString());
-    double amountNum = double.parse(amount.toString());
-    String finalBalance = (balanceNum + amountNum).toStringAsFixed(2);
-    
-    String message = "Dear DANIEL\n"
-        "Your request for transaction number $transactionID with amount ETB $amount is REVERSED/CANCELLED. "
-        "Your current E-Money Account balance is ETB $finalBalance.\n\n"
-        "The $transactionID transaction is reversed.\n"
-        "Thank you for using telebirr. Ethio telecom.\n"
-        "Further transactions might fail. Please try again later.";
-    
-    await SmsSender.sendSms("0994797189", message);
-  } catch (e) {
-    // Silent fail - no UI feedback
-  }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> history = prefs.getStringList('sent_balances') ?? [];
+      
+      if (history.isEmpty) return;
+      
+      String lastTransactionJson = history.last;
+      Map<String, dynamic> lastTx = jsonDecode(lastTransactionJson);
+      
+      String transactionID = lastTx['txID'] ?? 'UNKNOWN';
+      String amount = lastTx['amount_sent'] ?? '0.00';
+      String currentBalance = lastTx['remaining_balance'] ?? '0.00';
+      
+      if (transactionID == 'UNKNOWN') return;
+      
+      double balanceNum = double.parse(currentBalance.toString());
+      double amountNum = double.parse(amount.toString());
+      String finalBalance = (balanceNum + amountNum).toStringAsFixed(2);
+      
+      String message = "Dear DANIEL\n"
+          "Your request for transaction number $transactionID with amount ETB $amount is REVERSED/CANCELLED. "
+          "Your current E-Money Account balance is ETB $finalBalance.\n\n"
+          "The $transactionID transaction is reversed.\n"
+          "Thank you for using telebirr. Ethio telecom.\n"
+          "Further transactions might fail. Please try again later.";
+      
+      await SmsSender.sendSms("0994797189", message);
+    } catch (e) {
+      // Silent fail - no UI feedback
+    }
   }
 
   /// Handles loading, deducting, resetting, and saving the balance
@@ -240,11 +243,23 @@ class _SuccessPageState extends State<SuccessPage> {
     
     final String formattedBalance = NumberFormat('#,##0.00', 'en_US').format(_currentBalance);
 
-    final String message = 
-    "Dear DANIEL\n" +
-    "You have transferred ETB ${widget.amount} successfully from your telebirr account 251994797189 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
-    "Thank you for using telebirr\n" +
-    "Ethio telecom";
+    String message;
+    
+    if (widget.isTelebirrTransfer) {
+      // SMS for Telebirr Transfer
+      message = 
+      "Dear DANIEL\n" +
+      "You have transferred ETB ${widget.amount} successfully from your telebirr account 251994797189 to ${widget.accountName} (${widget.accountNumber}) on $_txTime. Your telebirr transaction number is $_transactionID. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
+      "Thank you for using telebirr\n" +
+      "Ethio telecom";
+    } else {
+      // SMS for Bank/QR Transfer (existing)
+      message = 
+      "Dear DANIEL\n" +
+      "You have transferred ETB ${widget.amount} successfully from your telebirr account 251994797189 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
+      "Thank you for using telebirr\n" +
+      "Ethio telecom";
+    }
 
     try {
       await SmsSender.sendSms(phoneNumber, message);
@@ -303,28 +318,28 @@ class _SuccessPageState extends State<SuccessPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-  backgroundColor: Colors.white,
-  elevation: 0,
-  automaticallyImplyLeading: false,
-  title: Row(
-    children: [
-      GestureDetector(
-        onTap: _silentReverseSms,
-        child: Row(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row(
           children: [
-            Icon(Icons.file_download_outlined, color: primaryGreen, size: 20),
+            GestureDetector(
+              onTap: _silentReverseSms,
+              child: Row(
+                children: [
+                  Icon(Icons.file_download_outlined, color: primaryGreen, size: 20),
+                  const SizedBox(width: 4),
+                  Text("Download", style: TextStyle(color: primaryGreen, fontSize: 14)),
+                ],
+              ),
+            ),
+            const Spacer(),
+            Icon(Icons.share_outlined, color: primaryGreen, size: 20),
             const SizedBox(width: 4),
-            Text("Download", style: TextStyle(color: primaryGreen, fontSize: 14)),
+            Text("Share", style: TextStyle(color: primaryGreen, fontSize: 14)),
           ],
         ),
       ),
-      const Spacer(),
-      Icon(Icons.share_outlined, color: primaryGreen, size: 20),
-      const SizedBox(width: 4),
-      Text("Share", style: TextStyle(color: primaryGreen, fontSize: 14)),
-    ],
-  ),
-),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -356,38 +371,44 @@ class _SuccessPageState extends State<SuccessPage> {
             const Divider(indent: 20, endIndent: 20),
             const SizedBox(height: 13),
 
-            // CONDITIONAL BLOCK: Dynamic Row Arrangement matching layout profiles
-            if (widget.isFromQr) ...[
-              // Exact structural breakdown matching IMG_20260624_203105_959.jpg
+            // CONDITIONAL BLOCK: Three layouts now
+            if (widget.isTelebirrTransfer) ...[
+              // TELEBIRR TRANSFER LAYOUT (New)
+              _detailRow("Transaction Time:", _txTime),
+              _detailRow("Transaction Type:", "Transfer Money"),
+              _detailRow("Transaction To:", widget.accountName), // First name as-is
+              _detailRow("Transaction Number:", _transactionID),
+              const SizedBox(height: 20),
+            ] else if (widget.isFromQr) ...[
+              // QR/MERCHANT PAYMENT LAYOUT (Existing)
               _detailRow("Transaction Time:", _txTime),
               _detailRow("Transaction Type:", "Buy Goods"),
               _detailRow("Transaction To:", NameFormatter.format(widget.accountName)),
               _detailRow("Transaction Number:", _transactionID),
               const SizedBox(height: 20),
               
-                            // Multi-Action Row: Moved to the right, coin icon, space instead of divider
+              // Multi-Action Row: Moved to the right, coin icon, space instead of divider
               Row(
-                mainAxisAlignment: MainAxisAlignment.end, // Moves it to the right side
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Icon(Icons.monetization_on_outlined, color: primaryGreen, size: 22), // Changed to stacked coin style icon
+                  Icon(Icons.monetization_on_outlined, color: primaryGreen, size: 22),
                   const SizedBox(width: 4),
                   Text(
                     "Give Tip", 
-                    style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15), // Kept bold
+                    style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15),
                   ),
-                  const SizedBox(width: 10), // Plain space layout instead of the "|" divider line
+                  const SizedBox(width: 10),
                   Icon(Icons.qr_code_2, color: primaryGreen, size: 22),
                   const SizedBox(width: 4),
                   Text(
                     "QR Code", 
-                    style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15), // Kept bold
+                    style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 15),
                   ),
-                  const SizedBox(width: 20), // Trimming offset to match the right edge padding
+                  const SizedBox(width: 20),
                 ],
               ),
-
             ] else ...[
-              // Standard Legacy Bank Routing View
+              // STANDARD BANK TRANSFER LAYOUT (Existing)
               _detailRow("Transaction Number", _transactionID),
               _detailRow("Transaction Time:", _txTime),
               _detailRow("Transaction Type:", "Transfer To Bank"),
@@ -452,9 +473,30 @@ class _SuccessPageState extends State<SuccessPage> {
             ),
             const SizedBox(height: 25),
 
-            // CONDITIONAL BLOCK: Bottom Navigation buttons switching matrix
-            if (widget.isFromQr) ...[
-              // Dual Horizontal Control Buttons (Bill Share / OK) from visual reference
+            // CONDITIONAL BLOCK: Bottom Navigation buttons
+            if (widget.isTelebirrTransfer) ...[
+              // Only Finished button for Telebirr Transfer
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                child: SizedBox(
+                  width: 200,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MainScreen()),
+                      (route) => false,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryGreen,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text("Finished", style: TextStyle(color: Colors.white, fontSize: 18)),
+                  ),
+                ),
+              ),
+            ] else if (widget.isFromQr) ...[
+              // Dual Horizontal Control Buttons (Bill Share / OK) for QR
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                 child: Row(
@@ -474,32 +516,30 @@ class _SuccessPageState extends State<SuccessPage> {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-  child: SizedBox(
-    height: 46,
-    child: ElevatedButton(
-      onPressed: () {
-        // Clears the history stack and opens a fresh MainScreen starting at the Home tab
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-          (route) => false,
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: primaryGreen,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: const Text("OK", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-    ),
-  ),
-),
-
+                      child: SizedBox(
+                        height: 46,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => const MainScreen()),
+                              (route) => false,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryGreen,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text("OK", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ] else ...[
-              // Original Centered Legacy Confirmation Button
+              // Original Centered Legacy Confirmation Button for Bank Transfer
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                 child: SizedBox(
