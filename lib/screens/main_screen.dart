@@ -93,25 +93,31 @@ class _MainScreenState extends State<MainScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
+      barrierColor: Colors.transparent, // Remove grayish dimming overlay
       builder: (context) => Center(
         child: Container(
           margin: const EdgeInsets.all(40),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white, size: 40),
-              const SizedBox(height: 12),
-              const Text(
-                'System Busy. Please try again later.',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-                textAlign: TextAlign.center,
+            color: Colors.white, // White background
+            borderRadius: BorderRadius.circular(12), // Rounded corners
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
+          ),
+          child: const Text(
+            'System Busy. Please try again later.',
+            style: TextStyle(
+              color: Colors.black, // Black text on white background
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.none, // Remove any underline
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
       ),
