@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:telebirrbybr7/screens/bank_amount_page.dart'; // Verified package path routing
+import 'package:telebirrbybr7/screens/bank_amount_page.dart';
 
 class AppsPage extends StatefulWidget {
   const AppsPage({super.key});
@@ -12,8 +12,15 @@ class AppsPage extends StatefulWidget {
 class _AppsPageState extends State<AppsPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
+  
+  // Telebirr Transfer Controllers
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  
   String selectedBankName = '';
   bool _isLoading = false;
+  bool _isTelebirrTransfer = false; // Toggle state
 
   @override
   void initState() {
@@ -54,7 +61,7 @@ class _AppsPageState extends State<AppsPage> {
     }
   }
 
-  /// BYPASS FUNCTION: Direct route straight into BankAmountPage bypassing scanner camera screen
+  /// SCAN TRANSFER: Direct route straight into BankAmountPage bypassing scanner camera screen
   Future<void> _bypassQRAndNavigate() async {
     final prefs = await SharedPreferences.getInstance();
     String savedName = prefs.getString('saved_name') ?? 'No Name Saved';
@@ -63,7 +70,6 @@ class _AppsPageState extends State<AppsPage> {
 
     if (!mounted) return;
 
-    // Launch core route with the scanner pipeline flag set to true
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -71,7 +77,33 @@ class _AppsPageState extends State<AppsPage> {
           accountName: savedName,
           accountNumber: savedAccount,
           bankName: savedBank,
-          isFromQr: true, // <-- Forces merchant receipt layout down the execution stream
+          isFromQr: true,
+          isTelebirrTransfer: false,
+        ),
+      ),
+    );
+  }
+
+  /// TELEBIRR TRANSFER: Navigate with telebirr-specific data
+  Future<void> _telebirrTransferNavigate() async {
+    if (_firstNameController.text.isEmpty || _phoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill in First Name and Phone Number")),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BankAmountPage(
+          accountName: _firstNameController.text, // First name shown on success page
+          accountNumber: _phoneController.text, // Phone number (receipt only)
+          bankName: _fullNameController.text, // Full name (receipt only)
+          isFromQr: false,
+          isTelebirrTransfer: true,
         ),
       ),
     );
@@ -163,101 +195,210 @@ class _AppsPageState extends State<AppsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Link Bank Account", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            // TRANSFER MODE TOGGLE
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.swap_horiz, color: telebirrGreen, size: 24),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      "Transfer Mode",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Text(
+                    "Scan",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: !_isTelebirrTransfer ? telebirrGreen : Colors.grey,
+                    ),
+                  ),
+                  Switch(
+                    value: _isTelebirrTransfer,
+                    activeColor: telebirrGreen,
+                    onChanged: (value) {
+                      setState(() {
+                        _isTelebirrTransfer = value;
+                      });
+                    },
+                  ),
+                  Text(
+                    "Telebirr",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: _isTelebirrTransfer ? telebirrGreen : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 25),
 
-            // Bank Selection Dropdown UI (Preserved to maintain correct system logging params)
-            const Text("Select Bank", style: TextStyle(color: Colors.grey, fontSize: 14)),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => _showBankSelection(context),
-              child: Container(
+            // CONDITIONAL UI: Telebirr Transfer vs Scan Transfer
+            if (_isTelebirrTransfer) ...[
+              // TELEBIRR TRANSFER UI
+              const Text("Telebirr Transfer", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+
+              const Text("First Name", style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _firstNameController,
+                decoration: InputDecoration(
+                  hintText: "Enter first name",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              const Text("Full Name (Optional)", style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _fullNameController,
+                decoration: InputDecoration(
+                  hintText: "Enter full name for receipt",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              const Text("Phone Number", style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  hintText: "Enter phone number",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              SizedBox(
+                width: double.infinity,
                 height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
+                child: ElevatedButton(
+                  onPressed: _telebirrTransferNavigate,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: telebirrGreen,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text(
+                    "CONTINUE TO PAYMENT",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      selectedBankName.isEmpty ? '' : selectedBankName, 
-                      style: TextStyle(
-                        color: selectedBankName.isEmpty ? Colors.grey : Colors.black, 
-                        fontSize: 16
+              ),
+            ] else ...[
+              // SCAN TRANSFER UI (Existing)
+              const Text("Link Bank Account", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 25),
+
+              const Text("Select Bank", style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => _showBankSelection(context),
+                child: Container(
+                  height: 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        selectedBankName.isEmpty ? '' : selectedBankName, 
+                        style: TextStyle(
+                          color: selectedBankName.isEmpty ? Colors.grey : Colors.black, 
+                          fontSize: 16
+                        ),
                       ),
-                    ),
-                    const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-                  ],
+                      const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
-            
-            const Text("Account Name", style: TextStyle(color: Colors.grey, fontSize: 14)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                hintText: "Enter full name",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text("Account Number", style: TextStyle(color: Colors.grey, fontSize: 14)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _accountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: "Enter account number",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Standard Data Update Trigger
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _saveAccount,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: telebirrGreen,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("SAVE ACCOUNT", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Bypass shortcut navigation button layout
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: OutlinedButton.icon(
-                onPressed: _bypassQRAndNavigate,
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: telebirrGreen, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                icon: const Icon(Icons.flash_on, color: telebirrGreen),
-                label: const Text(
-                  "INSTANT MERCHANT PAYMENT",
-                  style: TextStyle(color: telebirrGreen, fontWeight: FontWeight.bold),
+              const SizedBox(height: 20),
+              
+              const Text("Account Name", style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  hintText: "Enter full name",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
               ),
-            ),
+
+              const SizedBox(height: 20),
+
+              const Text("Account Number", style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _accountController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: "Enter account number",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _saveAccount,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: telebirrGreen,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("SAVE ACCOUNT", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: _bypassQRAndNavigate,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: telebirrGreen, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.flash_on, color: telebirrGreen),
+                  label: const Text(
+                    "INSTANT MERCHANT PAYMENT",
+                    style: TextStyle(color: telebirrGreen, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
