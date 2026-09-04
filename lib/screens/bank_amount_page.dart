@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pin_dialog.dart';
-import 'package:telebirrbybr7/services/name_formatter.dart';
 
 class BankAmountPage extends StatefulWidget {
   final String accountName;
   final String accountNumber;
   final String bankName;
   final bool isFromQr;
-  final bool isTelebirrTransfer; // New flag
+  final bool isTelebirrTransfer;
 
   const BankAmountPage({
     super.key,
@@ -18,7 +17,7 @@ class BankAmountPage extends StatefulWidget {
     required this.accountNumber,
     required this.bankName,
     this.isFromQr = false,
-    this.isTelebirrTransfer = false, // Default false
+    this.isTelebirrTransfer = false,
   });
 
   @override
@@ -32,6 +31,7 @@ class _BankAmountPageState extends State<BankAmountPage> {
 
   final Color _primaryGreen = const Color(0xFF8DC73F);
   final Color _purpleColor = const Color(0xFFA349E5);
+  final Color _marigoldColor = const Color(0xFFFFC20F); // Marigold color
   
   // Balance variables
   double _currentBalance = 0.0;
@@ -243,7 +243,7 @@ class _BankAmountPageState extends State<BankAmountPage> {
                         accountNumber: widget.accountNumber,
                         bankName: widget.bankName,
                         isFromQr: widget.isFromQr,
-                        isTelebirrTransfer: widget.isTelebirrTransfer, // Pass along
+                        isTelebirrTransfer: widget.isTelebirrTransfer,
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -331,10 +331,10 @@ class _BankAmountPageState extends State<BankAmountPage> {
                                   width: 35,
                                   height: 35,
                                   decoration: BoxDecoration(
-                                    color: _primaryGreen.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(20),
+                                    color: _marigoldColor, // Marigold background
+                                    borderRadius: BorderRadius.circular(8), // Rounded corners
                                   ),
-                                  child: Icon(Icons.person, color: _primaryGreen, size: 20),
+                                  child: Icon(Icons.person, color: Colors.white, size: 20), // White icon
                                 )
                               : hasBank
                                   ? Container(
@@ -362,7 +362,7 @@ class _BankAmountPageState extends State<BankAmountPage> {
                                       child: const Icon(Icons.person, color: Colors.grey, size: 20),
                                     ),
                           title: Text(
-                            NameFormatter.format(widget.accountName),
+                            widget.accountName, // Keep text format as-is (no capitalization)
                             style: TextStyle(
                               color: widget.isTelebirrTransfer ? Colors.black : (hasBank ? Colors.white : Colors.black), 
                               fontWeight: FontWeight.bold, 
@@ -371,7 +371,7 @@ class _BankAmountPageState extends State<BankAmountPage> {
                           ),
                           subtitle: widget.isTelebirrTransfer
                               ? Text(
-                                  widget.accountNumber,
+                                  widget.accountNumber, // Phone number as-is
                                   style: const TextStyle(color: Colors.grey, fontSize: 13),
                                 )
                               : hasBank
@@ -416,15 +416,18 @@ class _BankAmountPageState extends State<BankAmountPage> {
                                   const Text("(ETB)", style: TextStyle(color: Colors.grey, fontSize: 12)),
                                 ],
                               ),
-                              Divider(thickness: 0.5, height: 30, color: Colors.grey.withOpacity(0.2)),
-                              Text(
-                                "Balance: ${_formatBalance(_currentBalance)}(ETB)",
-                                style: const TextStyle(
-                                  color: Color(0xFF4A6572),
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 14,
+                              // Conditionally show/hide balance for Telebirr Transfer
+                              if (!widget.isTelebirrTransfer) ...[
+                                Divider(thickness: 0.5, height: 30, color: Colors.grey.withOpacity(0.2)),
+                                Text(
+                                  "Balance: ${_formatBalance(_currentBalance)}(ETB)",
+                                  style: const TextStyle(
+                                    color: Color(0xFF4A6572),
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 14,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
@@ -436,7 +439,10 @@ class _BankAmountPageState extends State<BankAmountPage> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "Add notes(optional)",
-                      style: TextStyle(color: _primaryGreen, fontSize: 14),
+                      style: TextStyle(
+                        color: widget.isTelebirrTransfer ? const Color(0xFF708090) : _primaryGreen, // Slate color for Telebirr
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
