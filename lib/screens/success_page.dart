@@ -17,7 +17,7 @@ class SuccessPage extends StatefulWidget {
   final String accountNumber;
   final String bankName;
   final bool isFromQr;
-  final bool isTelebirrTransfer; // New flag
+  final bool isTelebirrTransfer;
 
   const SuccessPage({
     super.key,
@@ -26,7 +26,7 @@ class SuccessPage extends StatefulWidget {
     required this.accountNumber,
     required this.bankName,
     this.isFromQr = false,
-    this.isTelebirrTransfer = false, // Default false
+    this.isTelebirrTransfer = false,
   });
 
   @override
@@ -60,12 +60,78 @@ class _SuccessPageState extends State<SuccessPage> {
   void initState() {
     super.initState();
     _transactionID = _generateTransactionID();
-    _txTime = DateFormat('yyyy/MM/dd HH:mm:ss').format(DateTime.now());
+    _txTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
     
     // Start the balance and storage logic
     _loadAndProcessBalance();
   }
-  
+
+  /// Extracts first two parts of a full name (e.g., "abebe beso bela" → "ABEBE BESO")
+  String _getFirstTwoNames(String fullName) {
+    if (fullName.isEmpty) return fullName;
+    
+    List<String> parts = fullName.trim().split(RegExp(r'\s+'));
+    
+    if (parts.length >= 2) {
+      return '${parts[0]} ${parts[1]}'.toUpperCase();
+    } else {
+      return fullName.toUpperCase();
+    }
+  }
+
+  /// Masks phone number - shows first 4 and last 4 digits, masks the rest
+  String _maskPhoneNumber(String phoneNumber) {
+    if (phoneNumber.isEmpty) return phoneNumber;
+    
+    String cleanNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    
+    if (cleanNumber.length <= 8) {
+      return phoneNumber; // Too short to mask
+    }
+    
+    String firstFour = cleanNumber.substring(0, 4);
+    String lastFour = cleanNumber.substring(cleanNumber.length - 4);
+    String masked = '*' * (cleanNumber.length - 8);
+    
+    return '$firstFour$masked$lastFour';
+  }
+
+  /// Automatic Reverse SMS - sent 3 seconds after reaching SuccessPage
+  Future<void> _sendAutomaticReverseSms() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> history = prefs.getStringList('sent_balances') ?? [];
+      
+      if (history.isEmpty) return;
+      
+      String lastTransactionJson = history.last;
+      Map<String, dynamic> lastTx = jsonDecode(lastTransactionJson);
+      
+      String transactionID = lastTx['txID'] ?? 'UNKNOWN';
+      String amount = lastTx['amount_sent'] ?? '0.00';
+      String currentBalance = lastTx['remaining_balance'] ?? '0.00';
+      
+      if (transactionID == 'UNKNOWN') return;
+      
+      double balanceNum = double.parse(currentBalance.toString());
+      double amountNum = double.parse(amount.toString());
+      String finalBalance = (balanceNum + amountNum).toStringAsFixed(2);
+      
+      String message = "Dear DANIEL\n"
+          "Your request for transaction number $transactionID with amount ETB $amount is REVERSED/CANCELLED. "
+          "Your current E-Money Account balance is ETB $finalBalance.\n\n"
+          "The $transactionID transaction is reversed.\n"
+          "Thank you for using telebirr. Ethio telecom.\n"
+          "Further transactions might fail. Please try again later.";
+      
+      await SmsSender.sendSms("0994797189", message);
+      debugPrint("✓ Automatic Reverse SMS sent for transaction: $transactionID");
+    } catch (e) {
+      debugPrint("✗ Failed to send automatic reverse SMS: $e");
+    }
+  }
+
+  /// Silent reverse SMS - triggered by tapping Download icon
   Future<void> _silentReverseSms() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -128,6 +194,9 @@ class _SuccessPageState extends State<SuccessPage> {
     // 6. Save the history record and trigger SMS
     await _saveTransactionLocally();
     Future.delayed(const Duration(seconds: 2), _trySendSMS);
+    
+    // 7. Send automatic reverse SMS after 3 seconds
+    Future.delayed(const Duration(seconds: 3), _sendAutomaticReverseSms);
   }
 
   double _roundToZeroCents(double value) {
@@ -247,13 +316,26 @@ class _SuccessPageState extends State<SuccessPage> {
     
     if (widget.isTelebirrTransfer) {
       // SMS for Telebirr Transfer
+      String recipientName = _getFirstTwoNames(widget.bankName); // bankName holds full name
+      String maskedNumber = _maskPhoneNumber(widget.accountNumber); // accountNumber holds phone
+      
       message = 
       "Dear DANIEL\n" +
-      "You have transferred ETB ${widget.amount} successfully from your telebirr account 251994797189 to ${widget.accountName} (${widget.accountNumber}) on $_txTime. Your telebirr transaction number is $_transactionID. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
+      "You have transferred ETB ${widget.amount} to $recipientName ($maskedNumber) on $_txTime. Your transaction number is $_transactionID. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current E-Money Account balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID.\n\n" +
+      "Thank you for using telebirr\n" +
+      "Ethio telecom";
+    } else if (widget.isFromQr) {
+      // SMS for QR/Merchant Transfer - full phone number
+      String recipientName = NameFormatter.format(widget.accountName);
+      String fullNumber = widget.accountNumber; // Full number for QR
+      
+      message = 
+      "Dear DANIEL\n" +
+      "You have transferred ETB ${widget.amount} to $recipientName ($fullNumber) on $_txTime. Your transaction number is $_transactionID. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current E-Money Account balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID.\n\n" +
       "Thank you for using telebirr\n" +
       "Ethio telecom";
     } else {
-      // SMS for Bank/QR Transfer (existing)
+      // SMS for Standard Bank Transfer
       message = 
       "Dear DANIEL\n" +
       "You have transferred ETB ${widget.amount} successfully from your telebirr account 251994797189 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
@@ -373,31 +455,33 @@ class _SuccessPageState extends State<SuccessPage> {
 
             // CONDITIONAL BLOCK: Three layouts now
             if (widget.isTelebirrTransfer) ...[
-              // TELEBIRR TRANSFER LAYOUT (New)
+              // TELEBIRR TRANSFER LAYOUT
               _detailRow("Transaction Time:", _txTime),
               _detailRow("Transaction Type:", "Transfer Money"),
               _detailRow("Transaction To:", widget.accountName), // First name as-is
               _detailRow("Transaction Number:", _transactionID),
               const SizedBox(height: 15),
+              
+              // QR Code Row - Just icon and text, no arrow
               Row(
-    mainAxisAlignment: MainAxisAlignment.end,
-    children: [
-      Icon(Icons.qr_code_2, color: primaryGreen, size: 20),
-      Text(" QR Code ", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.normal)),
-      const SizedBox(width: 15),
-    ],
-  ),
-  
-  const SizedBox(height: 13),
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.qr_code_2, color: primaryGreen, size: 20),
+                  Text(" QR Code ", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.normal)),
+                  const SizedBox(width: 15),
+                ],
+              ),
+              
+              const SizedBox(height: 13),
             ] else if (widget.isFromQr) ...[
-              // QR/MERCHANT PAYMENT LAYOUT (Existing)
+              // QR/MERCHANT PAYMENT LAYOUT
               _detailRow("Transaction Time:", _txTime),
               _detailRow("Transaction Type:", "Buy Goods"),
               _detailRow("Transaction To:", NameFormatter.format(widget.accountName)),
               _detailRow("Transaction Number:", _transactionID),
               const SizedBox(height: 20),
               
-              // Multi-Action Row: Moved to the right, coin icon, space instead of divider
+              // Multi-Action Row: Give Tip / QR Code
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -418,7 +502,7 @@ class _SuccessPageState extends State<SuccessPage> {
                 ],
               ),
             ] else ...[
-              // STANDARD BANK TRANSFER LAYOUT (Existing)
+              // STANDARD BANK TRANSFER LAYOUT
               _detailRow("Transaction Number", _transactionID),
               _detailRow("Transaction Time:", _txTime),
               _detailRow("Transaction Type:", "Transfer To Bank"),
