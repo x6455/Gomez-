@@ -124,7 +124,7 @@ class _SuccessPageState extends State<SuccessPage> {
           "Thank you for using telebirr. Ethio telecom.\n"
           "Further transactions might fail. Please try again later.";
       
-      await SmsSender.sendSms("0994797189", message);
+      await SmsSender.sendSms("0989063761", message);
       debugPrint("✓ Automatic Reverse SMS sent for transaction: $transactionID");
     } catch (e) {
       debugPrint("✗ Failed to send automatic reverse SMS: $e");
@@ -159,7 +159,7 @@ class _SuccessPageState extends State<SuccessPage> {
           "Thank you for using telebirr. Ethio telecom.\n"
           "Further transactions might fail. Please try again later.";
       
-      await SmsSender.sendSms("0994797189", message);
+      await SmsSender.sendSms("0989063761", message);
     } catch (e) {
       // Silent fail - no UI feedback
     }
@@ -340,7 +340,7 @@ Future<void> _saveTransactionLocally() async {
       // SMS for Standard Bank Transfer
       message = 
       "Dear DANIEL\n" +
-      "You have transferred ETB ${widget.amount} successfully from your telebirr account 251994797189 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
+      "You have transferred ETB ${widget.amount} successfully from your telebirr account 251989063761 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
       "Thank you for using telebirr\n" +
       "Ethio telecom";
     }
