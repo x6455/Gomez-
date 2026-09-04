@@ -9,14 +9,16 @@ class BankAmountPage extends StatefulWidget {
   final String accountName;
   final String accountNumber;
   final String bankName;
-  final bool isFromQr; // <-- Added flag to constructor
+  final bool isFromQr;
+  final bool isTelebirrTransfer; // New flag
 
   const BankAmountPage({
     super.key,
     required this.accountName,
     required this.accountNumber,
     required this.bankName,
-    this.isFromQr = false, // Defaults to false to protect normal flow
+    this.isFromQr = false,
+    this.isTelebirrTransfer = false, // Default false
   });
 
   @override
@@ -135,9 +137,9 @@ class _BankAmountPageState extends State<BankAmountPage> {
                 ),
               ),
 
-              const Text(
-                "Transfer To Bank",
-                style: TextStyle(
+              Text(
+                widget.isTelebirrTransfer ? "Transfer Money" : "Transfer To Bank",
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
@@ -233,7 +235,6 @@ class _BankAmountPageState extends State<BankAmountPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      // Forward the isFromQr flag directly to PinDialog
                       PinDialog.show(
                         context, 
                         amount: _amount.isEmpty ? "0.00" : _amount, 
@@ -241,7 +242,8 @@ class _BankAmountPageState extends State<BankAmountPage> {
                         accountName: widget.accountName,
                         accountNumber: widget.accountNumber,
                         bankName: widget.bankName,
-                        isFromQr: widget.isFromQr, // <-- Passed along here
+                        isFromQr: widget.isFromQr,
+                        isTelebirrTransfer: widget.isTelebirrTransfer, // Pass along
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -291,16 +293,16 @@ class _BankAmountPageState extends State<BankAmountPage> {
     const Color themeBgColor = Color(0xFFF5F5F5);
     final bankColor = _getBankColor(widget.bankName);
     final bankLogo = _getBankLogo(widget.bankName);
-    final hasBank = widget.bankName.isNotEmpty;
+    final hasBank = widget.bankName.isNotEmpty && !widget.isTelebirrTransfer;
 
     return Scaffold(
       backgroundColor: themeBgColor,
       appBar: AppBar(
         backgroundColor: themeBgColor,
         elevation: 0,
-        title: const Text(
-          'Transfer to Bank',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          widget.isTelebirrTransfer ? 'Transfer Money' : 'Transfer to Bank',
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -317,55 +319,70 @@ class _BankAmountPageState extends State<BankAmountPage> {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: hasBank ? bankColor : Colors.white,
+                      color: widget.isTelebirrTransfer ? Colors.white : (hasBank ? bankColor : Colors.white),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       children: [
                         ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          leading: hasBank
+                          leading: widget.isTelebirrTransfer
                               ? Container(
                                   width: 35,
                                   height: 35,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(1.0),
-                                    child: Image.asset(
-                                      bankLogo,
-                                      errorBuilder: (c, e, s) =>
-                                          Icon(Icons.account_balance, color: bankColor),
-                                    ),
-                                  ),
-                                )
-                              : Container(
-                                  width: 35,
-                                  height: 35,
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: _primaryGreen.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: const Icon(Icons.person, color: Colors.grey, size: 20),
-                                ),
+                                  child: Icon(Icons.person, color: _primaryGreen, size: 20),
+                                )
+                              : hasBank
+                                  ? Container(
+                                      width: 35,
+                                      height: 35,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(1.0),
+                                        child: Image.asset(
+                                          bankLogo,
+                                          errorBuilder: (c, e, s) =>
+                                              Icon(Icons.account_balance, color: bankColor),
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 35,
+                                      height: 35,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(Icons.person, color: Colors.grey, size: 20),
+                                    ),
                           title: Text(
                             NameFormatter.format(widget.accountName),
                             style: TextStyle(
-                              color: hasBank ? Colors.white : Colors.black, 
+                              color: widget.isTelebirrTransfer ? Colors.black : (hasBank ? Colors.white : Colors.black), 
                               fontWeight: FontWeight.bold, 
                               fontSize: 18
                             ),
                           ),
-                          subtitle: hasBank
+                          subtitle: widget.isTelebirrTransfer
                               ? Text(
-                                  "${widget.bankName} (${widget.accountNumber})",
-                                  style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
-                                )
-                              : Text(
                                   widget.accountNumber,
                                   style: const TextStyle(color: Colors.grey, fontSize: 13),
-                                ),
+                                )
+                              : hasBank
+                                  ? Text(
+                                      "${widget.bankName} (${widget.accountNumber})",
+                                      style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
+                                    )
+                                  : Text(
+                                      widget.accountNumber,
+                                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                                    ),
                         ),
                         Container(
                           width: double.infinity,
