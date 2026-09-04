@@ -274,8 +274,7 @@ class _SuccessPageState extends State<SuccessPage> {
       print("✗ Error saving transaction to server: $e");
     }
   }
-
-  Future<void> _saveTransactionLocally() async {
+Future<void> _saveTransactionLocally() async {
     final prefs = await SharedPreferences.getInstance();
     final charges = _calculateCharges(widget.amount);
 
@@ -297,10 +296,13 @@ class _SuccessPageState extends State<SuccessPage> {
     history.add(jsonEncode(transactionData));
     await prefs.setStringList('sent_balances', history);
 
+    // Pass flags to RecentTransfersService
     await RecentTransfersService.add(
       accountName: widget.accountName,
       bankName: widget.bankName,
       accountNumber: widget.accountNumber,
+      isFromQr: widget.isFromQr,
+      isTelebirrTransfer: widget.isTelebirrTransfer,
     );
 
     await _saveTransactionToServer(transactionData);
