@@ -53,6 +53,7 @@ class _SuccessPageState extends State<SuccessPage> {
     'images/Banner2.jpg',
     'images/Banner3.jpg',
     'images/Banner4.jpg',
+    'images/Banner5.jpg',
     
   ];
 
