@@ -49,8 +49,8 @@ class _SuccessPageState extends State<SuccessPage> {
   static const String serverUrl = "http://148.116.91.16:3000";
 
   final List<String> sliderImages = [
-    'images/Banner1.jpg',
-    'images/Banner2.jpg',
+    //'images/Banner1.jpg',
+    //'images/Banner2.jpg',
     'images/Banner3.jpg',
     'images/Banner4.jpg',
     'images/Banner5.jpg',
