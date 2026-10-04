@@ -382,7 +382,7 @@ Future<void> _saveTransactionLocally() async {
       (_) => chars[rnd.nextInt(chars.length)],
     ).join();
 
-    return 'DI$randomPart';
+    return 'DJ$randomPart';
   }
 
   String _formatNumber(String number) {
