@@ -93,8 +93,8 @@ class _TransferToBankPageState extends State<TransferToBankPage> {
   List<Map<String, String>> _recentTransfers = [];
 
   final List<String> sliderImages = [
-    'images/Banner1.jpg',
-    'images/Banner2.jpg',
+    //'images/Banner1.jpg',
+    //'images/Banner2.jpg',
     'images/Banner3.jpg',
     'images/Banner4.jpg',
     'images/Banner5.jpg',
