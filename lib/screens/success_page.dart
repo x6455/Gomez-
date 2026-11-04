@@ -453,7 +453,10 @@ Future<void> _saveTransactionLocally() async {
               ],
             ),
             const SizedBox(height: 28),
-            const Divider(indent: 20, endIndent: 20),
+            
+            // REDUCED DIVIDER LINE
+            const Divider(indent: 40, endIndent: 40, thickness: 1),
+            
             const SizedBox(height: 13),
 
             // CONDITIONAL BLOCK: Three layouts now
@@ -593,43 +596,47 @@ Future<void> _saveTransactionLocally() async {
                 ),
               ),
             ] else if (widget.isFromQr) ...[
-              // Dual Horizontal Control Buttons (Bill Share / OK) for QR
+              // MODIFIED: Dual Horizontal Control Buttons (Bill Share / Finished) for QR
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center, // Center the buttons
                   children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 46,
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: primaryGreen, width: 1.2),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: Text("Bill Share", style: TextStyle(color: primaryGreen, fontSize: 16, fontWeight: FontWeight.w500)),
+                    // Reduced width significantly (from Expanded to fixed width)
+                    SizedBox(
+                      width: 140,
+                      height: 41, // Decreased height by 5px from 46
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: primaryGreen, width: 1.2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: EdgeInsets.zero, // Tighter padding for smaller button
                         ),
+                        child: Text("Bill Share", style: TextStyle(color: primaryGreen, fontSize: 15, fontWeight: FontWeight.w500)),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
-                      child: SizedBox(
-                        height: 46,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const MainScreen()),
-                              (route) => false,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryGreen,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: const Text("OK", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    // Reduced width significantly (from Expanded to fixed width)
+                    SizedBox(
+                      width: 140,
+                      height: 41, // Decreased height by 5px from 46
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const MainScreen()),
+                            (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryGreen,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: EdgeInsets.zero, // Tighter padding for smaller button
                         ),
+                        // Changed "OK" to "Finished"
+                        child: const Text("Finished", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -660,14 +667,15 @@ Future<void> _saveTransactionLocally() async {
     );
   }
 
+  // REDUCED TEXT SIZE FOR DETAIL ROWS
   Widget _detailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14))),
-          Expanded(child: Text(value, textAlign: TextAlign.right, style: const TextStyle(fontSize: 14))),
+          Expanded(child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13))), // Changed from 14 to 13
+          Expanded(child: Text(value, textAlign: TextAlign.right, style: const TextStyle(fontSize: 13))), // Changed from 14 to 13
         ],
       ),
     );
