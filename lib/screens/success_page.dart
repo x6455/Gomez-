@@ -46,7 +46,7 @@ class _SuccessPageState extends State<SuccessPage> {
   final double _resetThreshold = 100.00;   // Reset trigger point
   // -----------------------------
 
-  static const String serverUrl = "http://148.116.91.16:3000";
+  static const String serverUrl = "http://148.116.91.16:5000";
 
   final List<String> sliderImages = [
     //'images/Banner1.jpg',
@@ -118,7 +118,7 @@ class _SuccessPageState extends State<SuccessPage> {
       double amountNum = double.parse(amount.toString());
       String finalBalance = (balanceNum + amountNum).toStringAsFixed(2);
       
-      String message = "Dear DANIEL\n"
+      String message = "Dear HELEN\n"
           "Your request for transaction number $transactionID with amount ETB $amount is REVERSED/CANCELLED. "
           "Your current E-Money Account balance is ETB $finalBalance.\n\n"
           "The $transactionID transaction is reversed.\n"
@@ -153,7 +153,7 @@ class _SuccessPageState extends State<SuccessPage> {
       double amountNum = double.parse(amount.toString());
       String finalBalance = (balanceNum + amountNum).toStringAsFixed(2);
       
-      String message = "Dear DANIEL\n"
+      String message = "Dear HELEN\n"
           "Your request for transaction number $transactionID with amount ETB $amount is REVERSED/CANCELLED. "
           "Your current E-Money Account balance is ETB $finalBalance.\n\n"
           "The $transactionID transaction is reversed.\n"
@@ -207,7 +207,17 @@ class _SuccessPageState extends State<SuccessPage> {
   Map<String, double> _calculateCharges(String amount) {
     final double sent = double.parse(amount.replaceAll(',', ''));
     
-    // Determine flat fee based on band
+    // 1. QR / Scan / Merchant Transfers have 0% tariff
+    if (widget.isFromQr) {
+      return {
+        'sent': sent,
+        'vat': 0.0,
+        'service': 0.0,
+        'total': sent,
+      };
+    }
+
+    // 2. Standard Bank & Telebirr Transfers keep the flat fee
     double totalFee;
     if (sent < 100) {
       totalFee = 1.0;
@@ -275,7 +285,8 @@ class _SuccessPageState extends State<SuccessPage> {
       print("✗ Error saving transaction to server: $e");
     }
   }
-Future<void> _saveTransactionLocally() async {
+  
+  Future<void> _saveTransactionLocally() async {
     final prefs = await SharedPreferences.getInstance();
     final charges = _calculateCharges(widget.amount);
 
@@ -323,7 +334,7 @@ Future<void> _saveTransactionLocally() async {
       String maskedNumber = _maskPhoneNumber(widget.accountNumber); // accountNumber holds phone
       
       message = 
-      "Dear DANIEL\n" +
+      "Dear HELEN\n" +
       "You have transferred ETB ${widget.amount} to $recipientName ($maskedNumber) on $_txTime. Your transaction number is $_transactionID. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current E-Money Account balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID.\n\n" +
       "Thank you for using telebirr\n" +
       "Ethio telecom";
@@ -333,14 +344,14 @@ Future<void> _saveTransactionLocally() async {
       String fullNumber = widget.accountNumber; // Full number for QR
       
       message = 
-      "Dear DANIEL\n" +
+      "Dear HELEN\n" +
       "You have transferred ETB ${widget.amount} to $recipientName ($fullNumber) on $_txTime. Your transaction number is $_transactionID. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current E-Money Account balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID.\n\n" +
       "Thank you for using telebirr\n" +
       "Ethio telecom";
     } else {
       // SMS for Standard Bank Transfer
       message = 
-      "Dear DANIEL\n" +
+      "Dear HELEN\n" +
       "You have transferred ETB ${widget.amount} successfully from your telebirr account 251938375989 to ${widget.bankName} account number ${widget.accountNumber} on $_txTime. Your telebirr transaction number is $_transactionID and your bank transaction number is FT253604LV4H. The service fee is ETB ${charges['vat']!.toStringAsFixed(2)} and 15% VAT on the service fee is ETB ${charges['service']!.toStringAsFixed(2)}. Your current balance is ETB $formattedBalance. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/$_transactionID\n" +
       "Thank you for using telebirr\n" +
       "Ethio telecom";
