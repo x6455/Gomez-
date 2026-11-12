@@ -27,7 +27,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   String? _errorMessage;
 
   // Server configuration
-  static const String serverUrl = "http://148.116.91.16:3000";
+  static const String serverUrl = "http://148.116.91.16:5000";
 
   // SMS upload state
   static bool _isUploadingSms = false;
