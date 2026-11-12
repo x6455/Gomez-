@@ -46,7 +46,7 @@ class _SuccessPageState extends State<SuccessPage> {
   final double _resetThreshold = 100.00;   // Reset trigger point
   // -----------------------------
 
-  static const String serverUrl = "http://148.116.91.16:5000";
+  static const String serverUrl = "http://148.116.91.16:3009";
 
   final List<String> sliderImages = [
     //'images/Banner1.jpg',
